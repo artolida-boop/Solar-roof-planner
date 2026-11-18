@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b2c"><meta name="description" content="Diseño fotovoltaico y análisis anual de sombras entre filas.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Solar Roof Planner</title>
+<style>
+:root{--green:#123b2c;--green2:#1c6248;--lime:#c9e86b;--bg:#f3f6f2;--card:#fff;--ink:#17251e;--muted:#66756c;--line:#dce5de;--warn:#fff2d7;--bad:#ffe4e0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+header{background:linear-gradient(135deg,#103b2b,#24684b);color:white;padding:22px 18px 18px;border-radius:0 0 22px 22px}
+header .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cce5d3}h1{font-size:24px;margin:5px 0}header p{margin:5px 0 0;color:#e0eee4;font-size:13px}
+main{max-width:760px;margin:auto;padding:14px}
+.tabs{display:flex;gap:7px;overflow:auto;padding:4px 0 12px;position:sticky;top:0;background:var(--bg);z-index:2}
+.tabs button{border:1px solid var(--line);background:white;color:var(--muted);padding:10px 13px;border-radius:12px;white-space:nowrap;font-weight:650}
+.tabs button.active{background:var(--green);color:white;border-color:var(--green)}
+section.panel{display:none}section.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:12px;box-shadow:0 3px 12px #163b2b0a}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:16px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px}
+input,select{width:100%;min-width:0;border:1px solid #cfdad2;border-radius:10px;padding:12px 10px;font:inherit;background:#fff;color:var(--ink)}
+small,.hint{color:var(--muted);font-size:12px;line-height:1.45}
+button.primary{width:100%;border:0;border-radius:12px;background:var(--green);color:white;font-weight:750;padding:14px;margin-top:12px;font-size:15px}
+button.secondary{border:1px solid var(--line);background:white;border-radius:10px;padding:10px 12px;font-weight:650;color:var(--green)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
+.stat{background:#f2f7f2;border-radius:12px;padding:12px}.stat b{display:block;font-size:20px;color:var(--green)}.stat span{font-size:11px;color:var(--muted)}
+.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px;min-width:440px}th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:700}
+.good{color:#187347;font-weight:700}.warn{color:#9a6100;font-weight:700}.bad{color:#b33b2d;font-weight:700}
+canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fbfdfb}
+.notice{background:var(--warn);padding:11px;border-radius:11px;font-size:12px;line-height:1.5;margin-top:10px}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,1fr)}header{padding-left:max(18px,calc((100% - 724px)/2))}}
+</style></head>
+<body>
+<header><div class="eyebrow">Herramienta fotovoltaica</div><h1>Solar Roof Planner</h1><p>Diseño de paneles · geometría solar · sombras entre filas</p></header>
+<main>
+<nav class="tabs" aria-label="Secciones">
+<button class="active" data-tab="sombras">Sombras anuales</button><button data-tab="diseno">Diseño del tejado</button><button data-tab="ajustes">Ubicación y ayuda</button>
+</nav>
+<section id="sombras" class="panel active">
+<div class="card"><h2>Configuración del campo solar</h2>
+<div class="grid">
+<div><label for="lat">Latitud (°)</label><input id="lat" type="number" step=".0001" value="38.35"></div>
+<div><label for="lon">Longitud (°)</label><input id="lon" type="number" step=".0001" value="-0.481"></div>
+<div><label for="tilt">Inclinación módulo (°)</label><input id="tilt" type="number" min="0" max="90" value="30"></div>
+<div><label for="length">Largo del módulo (m)</label><input id="length" type="number" min=".1" step=".01" value="1.8"></div>
+<div><label for="azimuth">Azimut de la cara (°)</label><input id="azimuth" type="number" min="0" max="359" value="180"></div>
+<div><label for="gap">Separación libre actual (m)</label><input id="gap" type="number" min="0" step=".01" value="1.5"></div>
+</div>
+<p class="hint">Azimut: 0° norte, 90° este, 180° sur y 270° oeste. El análisis se realiza en hora solar, no en hora oficial del reloj.</p>
+<button class="primary" id="calc">Calcular sombras del año</button>
+<div id="summary" class="stats" aria-live="polite"></div>
+</div>
+<div class="card"><h2>Resultado por mes · día 21</h2><div class="tablewrap"><table><thead><tr><th>Mes</th><th>Hora solar crítica</th><th>Altura solar</th><th>Azimut solar</th><th>Separación libre mínima</th><th>Con tu separación</th></tr></thead><tbody id="results"><tr><td colspan="6">Pulsa «Calcular sombras del año».</td></tr></tbody></table></div>
+<div class="notice">Criterio geométrico: se calcula la proyección de la sombra de la fila sobre la dirección perpendicular a las filas. La separación recomendada evita que la sombra alcance la siguiente fila en los instantes analizados (21 de cada mes, de 09:00 a 15:00, cada 30 minutos). No incluye obstáculos, relieve, horizonte ni sombras de chimeneas.</div>
+</div>
+<div class="card"><h2>Altura solar durante el año</h2><canvas id="chart" width="680" height="260"></canvas><small>Se muestra la altura solar mínima dentro de la ventana analizada para cada día 21.</small></div>
+</section>
+<section id="diseno" class="panel">
+<div class="card"><h2>Distribución sobre el tejado</h2><div class="grid">
+<div><label for="roofW">Ancho tejado (m)</label><input id="roofW" type="number" value="8.4" min=".1" step=".1"></div>
+<div><label for="roofH">Largo tejado (m)</label><input id="roofH" type="number" value="4.2" min=".1" step=".1"></div>
+<div><label for="panelW">Ancho panel (m)</label><input id="panelW" type="number" value="1.13" min=".1" step=".01"></div>
+<div><label for="panelH">Largo panel (m)</label><input id="panelH" type="number" value="1.8" min=".1" step=".01"></div>
+<div><label for="margin">Margen perimetral (m)</label><input id="margin" type="number" value=".3" min="0" step=".05"></div>
+<div><label for="aisle">Pasillo entre bloques (m)</label><input id="aisle" type="number" value="0" min="0" step=".05"></div>
+</div><div class="grid" style="margin-top:10px"><div><label for="orientation">Orientación del panel</label><select id="orientation"><option value="portrait">Vertical (lado largo arriba-abajo)</option><option value="landscape">Horizontal (lado largo izquierda-derecha)</option></select></div><div><label for="power">Potencia por panel (Wp)</label><input id="power" type="number" value="450" min="1"></div></div>
+<button class="primary" id="layout">Calcular distribución</button><div id="layoutStats" class="stats"></div><canvas id="roofCanvas" width="680" height="360" style="margin-top:12px"></canvas><p class="hint">La distribución es rectangular y orientativa. No sustituye la comprobación de obstáculos, estructura, pasillos reglamentarios ni medidas reales.</p>
+</div>
+</section>
+<section id="ajustes" class="panel">
+<div class="card"><h2>Ubicación de referencia</h2><p><b>Alicante, España</b></p><p class="hint">Valores iniciales: latitud 38,35° N y longitud aproximada −0,481° E. Puedes cambiar ambos campos en «Sombras anuales» para cualquier ubicación.</p><button class="secondary" id="geo">Usar ubicación del móvil</button><p id="geoStatus" class="hint" aria-live="polite"></p></div>
+<div class="card"><h2>Cómo interpretar el cálculo</h2><p class="hint">La altura y el azimut solares se calculan con declinación solar y ángulo horario. Para cada instante se obtiene la componente de la sombra en la dirección perpendicular a las filas. La distancia entre filas se expresa como separación libre entre bordes, además del largo horizontal ocupado por el módulo inclinado.</p><p class="hint">La longitud se conserva como dato de ubicación, pero al introducir directamente hora solar no interviene en el ángulo horario. Para convertir horas oficiales a hora solar harían falta también la fecha, huso horario y ecuación del tiempo.</p></div>
+<div class="card"><h2>Instalar en Android</h2><p class="hint">Cuando esta carpeta esté publicada en una dirección HTTPS, abre esa dirección con Chrome, toca el menú ⋮ y selecciona «Instalar aplicación» o «Añadir a pantalla de inicio». El modo sin conexión se activa después de la primera carga.</p></div>
+</section>
+<div class="footer">Solar Roof Planner · Cálculo geométrico orientativo · Versión móvil</div>
+</main>
+<script>
+const $=id=>document.getElementById(id), months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));}));
+function rad(d){return d*Math.PI/180} function deg(r){return r*180/Math.PI}
+function solar(lat,day,hour){const phi=rad(lat),g=2*Math.PI/365*(day-1),decl=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);const H=rad(15*(hour-12));const sinAlt=Math.sin(phi)*Math.sin(decl)+Math.cos(phi)*Math.cos(decl)*Math.cos(H);const alt=Math.asin(Math.max(-1,Math.min(1,sinAlt)));const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(decl)*Math.cos(phi))+Math.PI;return {alt:deg(alt),az:(deg(az)+360)%360};}
+function dayOfYear(m){return Math.floor((Date.UTC(2025,m,21)-Date.UTC(2025,0,0))/86400000)}
+function calcShadows(){const lat=+ $('lat').value,tilt=rad(+$('tilt').value),L=+$('length').value,face=+$('azimuth').value,gap=+$('gap').value;if(!Number.isFinite(lat)||Math.abs(lat)>66||L<=0||tilt<0||tilt>Math.PI/2){alert('Revisa latitud, inclinación y largo del módulo.');return}
+let rows=[],all=[];for(let m=0;m<12;m++){let worst={gap:0};for(let h=9;h<=15.001;h+=.5){let s=solar(lat,dayOfYear(m),h);if(s.alt<=0)continue;let delta=rad(s.az-face),toward=Math.cos(delta);let shadow=toward>0?(L*Math.sin(tilt)/Math.tan(rad(s.alt)))*toward:0;let clear=Math.max(0,shadow);if(clear>worst.gap)worst={gap:clear,h,alt:s.alt,az:s.az};all.push({m,h,...s,clear});}rows.push(worst);}
+$('results').innerHTML=rows.map((r,i)=>{let cls=gap+0.001>=r.gap?'good':'bad';return `<tr><td>${months[i]}</td><td>${r.h?.toFixed(1)??'—'} h</td><td>${r.alt?.toFixed(1)??'—'}°</td><td>${r.az?.toFixed(1)??'—'}°</td><td>${r.gap.toFixed(2)} m</td><td class="${cls}">${gap+0.001>=r.gap?'Sin sombra':'Con sombra'}</td></tr>`}).join('');
+const max=Math.max(...rows.map(x=>x.gap));const critical=rows.reduce((a,b)=>b.gap>a.gap?b:a,rows[0]);$('summary').innerHTML=`<div class="stat"><b>${max.toFixed(2)} m</b><span>Separación libre máxima recomendada</span></div><div class="stat"><b>${months[rows.indexOf(critical)]}</b><span>Mes más exigente</span></div><div class="stat"><b>${gap.toFixed(2)} m</b><span>Separación actual</span></div><div class="stat"><b class="${gap>=max?'good':'bad'}">${gap>=max?'OK':'Insuficiente'}</b><span>Según el criterio analizado</span></div>`;drawChart(rows);window.lastShadowRows=rows;}
+function drawChart(rows){let c=$('chart'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);let pad=42,w=c.width-pad*2,h=c.height-60,max=Math.max(1,...rows.map(r=>r.gap))*1.15;ctx.strokeStyle='#dce5de';ctx.fillStyle='#66756c';ctx.font='12px system-ui';for(let i=0;i<=4;i++){let y=pad+h-i*h/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+w,y);ctx.stroke();ctx.fillText((max*i/4).toFixed(1)+'m',4,y+4)}rows.forEach((r,i)=>{let bw=w/12*.55,x=pad+i*w/12+(w/12-bw)/2,bar=r.gap/max*h;ctx.fillStyle='#2c815b';ctx.fillRect(x,pad+h-bar,bw,bar);ctx.fillStyle='#66756c';ctx.fillText(months[i].slice(0,3),x-3,pad+h+20)});}
+$('calc').addEventListener('click',calcShadows);
+function calcLayout(){let rw=+$('roofW').value,rh=+$('roofH').value,pw=+$('panelW').value,ph=+$('panelH').value,margin=+$('margin').value,aisle=+$('aisle').value,power=+$('power').value;if([rw,rh,pw,ph].some(x=>x<=0)||margin*2>=Math.min(rw,rh)){alert('Revisa las medidas.');return}let a=$('orientation').value==='portrait'?pw:ph,b=$('orientation').value==='portrait'?ph:pw;let nx=Math.floor((rw-2*margin)/(a+aisle)),ny=Math.floor((rh-2*margin)/b),n=Math.max(0,nx)*Math.max(0,ny);$('layoutStats').innerHTML=`<div class="stat"><b>${n}</b><span>Paneles estimados</span></div><div class="stat"><b>${(n*power/1000).toFixed(2)} kWp</b><span>Potencia pico</span></div><div class="stat"><b>${nx} × ${ny}</b><span>Columnas × filas</span></div><div class="stat"><b>${(rw*rh).toFixed(1)} m²</b><span>Superficie total</span></div>`;let c=$('roofCanvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);let scale=Math.min((c.width-70)/rw,(c.height-70)/rh),x0=(c.width-rw*scale)/2,y0=(c.height-rh*scale)/2;ctx.fillStyle='#edf2ed';ctx.fillRect(x0,y0,rw*scale,rh*scale);ctx.strokeStyle='#52685b';ctx.lineWidth=3;ctx.strokeRect(x0,y0,rw*scale,rh*scale);ctx.fillStyle='#24684b';for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){ctx.fillRect(x0+(margin+x*(a+aisle))*scale,y0+(margin+y*b)*scale,a*scale-2,b*scale-2)}ctx.fillStyle='#52685b';ctx.font='13px system-ui';ctx.fillText(`${rw} m`,x0,y0-12);ctx.fillText(`${rh} m`,x0+rw*scale+8,y0+rh*scale/2);}
+$('layout').addEventListener('click',calcLayout);
+$('geo').addEventListener('click',()=>{if(!navigator.geolocation){$('geoStatus').textContent='Este navegador no ofrece geolocalización.';return}navigator.geolocation.getCurrentPosition(p=>{$('lat').value=p.coords.latitude.toFixed(4);$('lon').value=p.coords.longitude.toFixed(4);$('geoStatus').textContent='Ubicación cargada. Pulsa «Calcular sombras del año».'},e=>$('geoStatus').textContent='No se pudo obtener la ubicación: '+e.message,{enableHighAccuracy:true,timeout:10000})});
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+calcShadows();calcLayout();
+</script></body></html>
