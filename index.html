@@ -36,7 +36,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.4 · seguidor solar con backtracking</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.4.1 · seguidor solar con backtracking</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="tracker">Seguidor solar</button><button data-tab="results">Resultados</button>
 </nav>
@@ -114,7 +114,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <label>Intervalo<select id="trackerStep"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">60 minutos</option></select></label>
 <label>Referencia horaria<select id="trackerTimeMode"><option value="solar">Hora solar verdadera</option><option value="civil">Hora oficial local</option></select></label>
 </div>
-<div class="notice">El azimut del eje se mide desde el norte geográfico y en sentido horario: 0° = norte-sur; 90° = este-oeste. El giro se expresa respecto a la posición de referencia con la normal del módulo vertical (plano del panel horizontal): positivo hacia el este del eje y negativo hacia el oeste. Para el backtracking, el ancho de mesa se mide perpendicularmente al eje y la distancia entre ejes es la separación horizontal entre filas.</div>
+<div class="notice">El azimut del eje se mide desde el norte geográfico y en sentido horario: 0° = norte-sur; 90° = este-oeste. El giro se expresa respecto a la posición horizontal y sigue la regla de la mano derecha alrededor del eje: el sentido geográfico del giro positivo depende del azimut del eje. Para el backtracking, el ancho de mesa se mide perpendicularmente al eje y la distancia entre ejes es la separación horizontal entre filas.</div>
 <label class="inline"><input id="trackerBacktracking" type="checkbox" checked> Activar backtracking para evitar sombras entre filas</label>
 <button class="primary" id="trackerCalc">Calcular seguimiento diario</button>
 <div id="trackerOut" aria-live="polite"><p class="muted">Configura el eje, la fecha y los límites y pulsa «Calcular».</p></div>
@@ -416,15 +416,26 @@ function drawTrackerChart(rows,limit){
 function calculateTracker(){
  const dateVal=$('trackerDate').value,axis=v('trackerAxis'),limit=v('trackerLimit'),start=v('trackerStart'),end=v('trackerEnd'),step=v('trackerStep'),width=v('trackerWidth'),pitch=v('trackerPitch'),backtracking=$('trackerBacktracking').checked;
  const lat=v('lat'),lon=v('lon'),tz=v('tz'),civil=$('trackerTimeMode').value==='civil';
- if(!dateVal||![axis,limit,start,end,step,width,pitch,lat,lon,tz].every(Number.isFinite)||width<=0||pitch<=0||pitch<width||axis<0||axis>=360||limit<0||limit>90||start<0||end>24||end<=start||step<=0||lat<-90||lat>90||lon<-180||lon>180){$('trackerOut').innerHTML='<div class="warn">Revisa la fecha, coordenadas, huso horario, azimut, límite mecánico, intervalo y geometría: el ancho de mesa debe ser mayor que cero y la distancia entre ejes no puede ser menor que ese ancho.</div>';return;}
+ const parsedDate=dateVal?dateVal.split('-').map(Number):[];
+ const validDate=parsedDate.length===3&&parsedDate.every(Number.isInteger)&&(()=>{const dt=new Date(Date.UTC(parsedDate[0],parsedDate[1]-1,parsedDate[2]));return dt.getUTCFullYear()===parsedDate[0]&&dt.getUTCMonth()===parsedDate[1]-1&&dt.getUTCDate()===parsedDate[2]})();
+ if(!validDate||![axis,limit,start,end,step,width,pitch,lat,lon,tz].every(Number.isFinite)||width<=0||pitch<=0||pitch<width||axis<0||axis>=360||limit<0||limit>90||start<0||end>24||end<=start||step<=0||lat<-90||lat>90||lon<-180||lon>180){$('trackerOut').innerHTML='<div class="warn">Revisa la fecha, coordenadas, huso horario, azimut, límite mecánico, intervalo y geometría: el ancho de mesa debe ser mayor que cero y la distancia entre ejes no puede ser menor que ese ancho.</div>';return;}
  const [yy,mm,dd]=dateVal.split('-').map(Number),y=yy,m=mm-1,d=dd,doy=dayOfYear(y,m,d),dst=$('dst').checked,gcr=width/pitch;
  trackerRows=[];
  for(let minutes=Math.round(start*60);minutes<=Math.round(end*60)+1e-6;minutes+=step){
   const hour=minutes/60,solarHour=civil?solarTimeFromCivil(y,m,d,hour,lon,tz,dst):hour;
   const sun=sunPosition(lat,y,doy,solarHour),day=sun.up>0;
   const ideal=day?trackerAngle(sun,axis):NaN;
+  // Backtracking para eje horizontal y terreno plano (GCR = ancho / paso).
+  // Corrección NREL: theta_bt = theta_ideal - sign(theta_ideal) * acos(|cos(theta_ideal)| / GCR)
+  // Solo se aplica cuando el cociente es menor que 1; en caso contrario no hay sombra entre filas.
   let backtracked=ideal;
-  if(day&&backtracking&&gcr>0){const ratio=Math.abs(Math.cos(rad(ideal)))/gcr;if(ratio<1)backtracked=Math.sign(ideal)*deg(Math.acos(clamp(ratio,0,1)));}
+  if(day&&backtracking&&gcr>0){
+   const ratio=Math.abs(Math.cos(rad(ideal)))/gcr;
+   if(ratio<1){
+    const correction=deg(Math.acos(clamp(ratio,0,1)));
+    backtracked=ideal-Math.sign(ideal)*correction;
+   }
+  }
   const applied=day?clamp(backtracked,-limit,limit):NaN;
   trackerRows.push({time:formatHour(hour),solarTime:solarHour,altitude:sun.altitude,azimuth:sun.azimuth,ideal,backtracked,applied,backtrackedChanged:day&&Math.abs(ideal-backtracked)>1e-7,limited:day&&Math.abs(backtracked-applied)>1e-7});
  }
