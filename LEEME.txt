@@ -1,13 +1,29 @@
-SOLAR ROOF PLANNER — PAQUETE LIMPIO
+SOLAR ROOF PLANNER — PAQUETE CORREGIDO 3.2
 
-Archivos de publicación:
-- index.html: aplicación
-- manifest.webmanifest: instalación PWA
-- sw.js: caché y actualización
-- icon.svg: icono
+Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
+- index.html
+- manifest.webmanifest
+- sw.js
+- icon.svg
 
-Publica TODOS estos archivos juntos en la raíz de tu sitio HTTPS (por ejemplo, la carpeta raíz de GitHub Pages). No abras index.html desde el ZIP para instalarla: accede a la URL publicada desde Chrome y usa Instalar aplicación / Añadir a pantalla de inicio.
+CAMBIOS DE ESTA ENTREGA
+- Se corrige la identificación de versión: esta entrega es 3.2, no 4.0.
+- Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
+- Se corrige la validación del campo de separación manual para que no bloquee el cálculo automático si el campo manual está vacío.
+- Se avisa cuando no cabe ningún panel en la cubierta.
+- Se añade exportación Excel compatible (.xls, formato SpreadsheetML) además del CSV y la impresión/guardado en PDF.
+- Se evita interpretar valores nulos de PVGIS como un ángulo de cero grados.
 
-La aplicación es una herramienta de planificación preliminar. El análisis de sombras entre filas es geométrico y muestreado; no sustituye un estudio profesional ni modela sombras de edificios/árboles, estructuras, viento, cargas o diseño eléctrico. El horizonte PVGIS se presenta como dato informativo y no se incorpora automáticamente al cálculo entre filas.
+FUNCIONES PRESENTES
+- Geometría de cubierta rectangular y distribución esquemática de módulos.
+- Cálculo geométrico 2D de sombras entre filas para los días 21 de los meses seleccionados y el horario indicado.
+- Conversión entre hora solar verdadera y hora civil, con cambio horario europeo.
+- Geolocalización del dispositivo, consulta de horizonte PVGIS y solicitud de ángulos óptimos PVGIS.
+- Exportación CSV, Excel compatible (.xls) e impresión/guardado en PDF.
+- Instalación PWA y caché offline básica.
 
-La consulta de ángulos PVGIS utiliza la respuesta documentada de PVcalc 5.3: inputs.mounting_system.fixed.slope.value y inputs.mounting_system.fixed.azimuth.value. Requiere conexión a Internet.
+LIMITACIONES IMPORTANTES
+Esta entrega NO es la versión 4.0 ni incorpora todavía seguimiento solar motorizado, simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
+
+PUBLICACIÓN
+Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.2. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.

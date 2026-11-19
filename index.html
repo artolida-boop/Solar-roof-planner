@@ -36,7 +36,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.1 · PVGIS, optimización anual y sombras entre filas</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.2 · correcciones de cálculo y actualización PWA</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -106,7 +106,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="stat"><div class="num" id="kwp">—</div><small>Potencia pico</small></div>
 <div class="stat"><div class="num" id="area">—</div><small>Superficie de paneles</small></div>
 <div class="stat"><div class="num" id="rows">—</div><small>Filas</small></div>
-</div><div id="details"></div><button class="primary" onclick="window.print()">Imprimir / guardar PDF</button><button class="primary" id="csv">Exportar CSV</button></div>
+</div><div id="details"></div><button class="primary" onclick="window.print()">Imprimir / guardar PDF</button><button class="primary" id="csv">Exportar CSV</button><button class="primary" id="excel">Exportar Excel (.xls)</button></div>
 </section>
 <div class="notice"><b>Alcance:</b> cálculo geométrico preliminar para filas rectas, paralelas e iguales sobre plano horizontal, con inclinación fija. No modela relieve, horizonte, edificios, árboles, chimeneas, irregularidad del terreno, estructura, retranqueos, bifacialidad ni pérdidas eléctricas. El porcentaje sombreado es longitud geométrica del módulo en una sección 2D; no equivale directamente a porcentaje de potencia perdida. No sustituye un estudio profesional ni un diseño estructural/eléctrico.</div>
 <script>
@@ -277,7 +277,7 @@ async function queryPVGIS(){
 
 function pvgisFixedValue(obj,kind){
  const value=obj?.inputs?.mounting_system?.fixed?.[kind]?.value;
- return Number.isFinite(Number(value))?Number(value):null;
+ return value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))?Number(value):null;
 }
 
 async function pvgisOptimal(){
@@ -328,14 +328,14 @@ $('pack').onclick=()=>{
  if(gap===null||!Number.isFinite(gap)||gap<0)return;
  let rw=v('rw'),rl=v('rl'),mx=v('mx'),my=v('my'),pg=v('pg')/100,tilt=v('tilt'),pw=v('pw'),ph=v('ph'),wp=v('wp'),manualGap=v('manual');
  let panelW=$('orient').value==='v'?pw:ph,slopeL=moduleSlopeLength(),footprintDepth=slopeL*Math.cos(rad(tilt));
- if(![gap,rw,rl,mx,my,pg,tilt,pw,ph,wp,panelW,slopeL].every(Number.isFinite)||rw<=0||rl<=0||mx<0||my<0||mx*2>=rw||my*2>=rl||pg<0||pw<=0||ph<=0||wp<=0||tilt<0||tilt>90||( $('gapMode').value==='manual'&&(manualGap<0||!Number.isFinite(manualGap)))){$('drawing').innerHTML='<div class="warn">Revisa las dimensiones de cubierta, márgenes, paneles, potencia y separación. Los valores deben ser válidos y la superficie útil debe ser positiva.</div>';layout=null;return;}
+ if(![gap,rw,rl,mx,my,pg,tilt,pw,ph,wp,panelW,slopeL].every(Number.isFinite)||rw<=0||rl<=0||mx<0||my<0||mx*2>=rw||my*2>=rl||pg<0||pw<=0||ph<=0||wp<=0||tilt<0||tilt>90||($('gapMode').value==='manual'&&(!Number.isFinite(manualGap)||manualGap<0))){$('drawing').innerHTML='<div class="warn">Revisa las dimensiones de cubierta, márgenes, paneles, potencia y separación. Los valores deben ser válidos y la superficie útil debe ser positiva.</div>';layout=null;return;}
  if(footprintDepth<0.05){$('drawing').innerHTML='<div class="warn">La proyección horizontal del panel es demasiado pequeña para generar un plano de filas fiable con esta inclinación.</div>';return}
  let usableW=rw-2*mx,usableL=rl-2*my;
  if(usableW<=0||usableL<=0){$('drawing').innerHTML='<div class="warn">Los márgenes dejan una superficie útil nula o negativa.</div>';return}
  // Separación de paneles solo a lo largo de la fila; hueco solar solo entre filas.
  let cols=Math.max(0,Math.floor((usableW+pg)/(panelW+pg)));
  let rows=Math.max(0,Math.floor((usableL+gap)/Math.max(footprintDepth+gap,0.001)));
- let count=cols*rows;layout={cols,rows,count,gap,panelW,footprintDepth};
+ let count=cols*rows;if(count===0){$('drawing').innerHTML='<div class="warn">Con estas dimensiones y separación no cabe ningún panel. Reduce márgenes o separación, o revisa el tamaño del módulo.</div>';layout=null;return;}layout={cols,rows,count,gap,panelW,footprintDepth};
  let svgW=360,svgH=Math.max(140,Math.min(300,svgW*rl/Math.max(rw,.1))),sx=(svgW-20)/rw,sy=(svgH-20)/rl;
  let rects='';for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)rects+=`<rect x="${10+(mx+c*(panelW+pg))*sx}" y="${10+(my+r*(footprintDepth+gap))*sy}" width="${panelW*sx*.96}" height="${footprintDepth*sy*.96}" rx="2" fill="#287fa0" stroke="#14516b"/>`;
  $('drawing').innerHTML=`<p><b>${count} paneles</b> · ${cols} paneles por fila × ${rows} filas · separación libre ${gap.toFixed(2)} m · paso entre filas ${(footprintDepth+gap).toFixed(2)} m</p><svg class="plan" viewBox="0 0 360 ${svgH}" role="img" aria-label="Plano esquemático de distribución"><rect x="10" y="10" width="${rw*sx}" height="${rl*sy}" fill="none" stroke="currentColor" stroke-width="1.5"/>${rects}</svg><small>Plano esquemático en planta. El largo del panel se proyecta horizontalmente con la inclinación introducida.</small>`;
@@ -351,6 +351,21 @@ $('csv').onclick=()=>{
  const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-sombras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 
+function xmlEscape(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+$('excel').onclick=()=>{
+ if(!lastSolar&&!layout){alert('Calcula las sombras o genera primero la distribución.');return;}
+ const sheets=[];
+ if(lastSolar){
+  const rows=[['Mes','Separación sin sombra (m)','Separación elegida (m)','Sombra peor caso (%)','Hora crítica','Altura solar (°)','Azimut solar (°)']];
+  lastSolar.rows.forEach(r=>{const sun=r.maxNoShade.sun;rows.push([months[r.m],r.samples.length?r.maxNoShade.gap.toFixed(3):'',lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),sun?sun.altitude.toFixed(2):'',sun?sun.azimuth.toFixed(2):'']);});
+  sheets.push({name:'Sombras',rows});
+ }
+ if(layout){sheets.push({name:'Distribucion',rows:[['Dato','Valor'],['Paneles',layout.count],['Filas',layout.rows],['Paneles por fila',layout.cols],['Separación entre filas (m)',layout.gap.toFixed(3)],['Potencia total (kWp)',(layout.count*v('wp')/1000).toFixed(2)],['Ancho de cubierta (m)',v('rw')],['Largo de cubierta (m)',v('rl')]]});}
+ const sheetXml=sheets.map(sh=>`<Worksheet ss:Name="${xmlEscape(sh.name)}"><Table>${sh.rows.map((row,i)=>`<Row>${row.map(cell=>{const numeric=cell!==''&&Number.isFinite(Number(cell));return `<Cell><Data ss:Type="${numeric?'Number':'String'}">${xmlEscape(cell)}</Data></Cell>`;}).join('')}</Row>`).join('')}</Table></Worksheet>`).join('');
+ const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Title>Solar Roof Planner</Title></DocumentProperties>${sheetXml}</Workbook>`;
+ const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-resultados.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+
 // Invalidar resultados antiguos cuando se modifican datos de entrada.
 const solarInputs=['lat','lon','tz','faceAz','rowAz','tilt','year','period','month','timeMode','start','end','interval','mode','shadeTolerance','dst','pw','ph'];
 solarInputs.forEach(id=>$(id).addEventListener('change',()=>{lastSolar=null;layout=null;window.solarGap=undefined;}));
@@ -359,7 +374,7 @@ layoutInputs.forEach(id=>$(id).addEventListener('change',()=>{layout=null;}));
 $('calc').onclick=()=>{layout=null;calcSolar();};
 
 updateRowGeometry();
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker' in navigator)window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await registration.update();}catch(error){console.warn('No se pudo actualizar el service worker:',error);}});
 window.showTab=showTab;
 </script>
 </body>
