@@ -1,0 +1,17 @@
+{
+  "name": "Solar Roof Planner",
+  "short_name": "Solar Planner",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f2",
+  "theme_color": "#123b2c",
+  "description": "Diseño fotovoltaico y análisis anual de sombras entre filas.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
