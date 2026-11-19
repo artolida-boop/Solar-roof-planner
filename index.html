@@ -36,7 +36,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 4.0 · PVGIS, optimización de inclinación y sombras entre filas</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.1 · PVGIS, optimización anual y sombras entre filas</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -115,7 +115,7 @@ const $=id=>document.getElementById(id);
 const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 let monthly=[],layout=null,lastSolar=null,pvgisData=null;
 const rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
-const v=id=>Number($(id).value);
+const v=id=>{const raw=$(id).value.trim();return raw===''?NaN:Number(raw)};
 const norm=a=>((a%360)+360)%360;
 const angleDiff=(a,b)=>Math.abs(((a-b+540)%360)-180);
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -144,16 +144,16 @@ function sunPosition(latDeg,y,doy,solarHour){
  return {altitude,azimuth,east,north,up};
 }
 function lastSunday(y,monthIndex){const last=new Date(Date.UTC(y,monthIndex+1,0));return last.getUTCDate()-last.getUTCDay()}
-function madridDST(y,m,d){
+function madridDST(y,m,d,hour=12){
  const march=lastSunday(y,2),october=lastSunday(y,9);
  if(m>2&&m<9)return true;
- if(m===2&&d>=march)return true;
- if(m===9&&d<october)return true;
+ if(m===2&&(d>march||(d===march&&hour>=2)))return true;
+ if(m===9&&(d<october||(d===october&&hour<3)))return true;
  return false;
 }
 function solarTimeFromCivil(y,m,d,civilHour,longitude,standardOffset,useDST){
  const doy=dayOfYear(y,m,d),eot=equationOfTime(y,doy,civilHour);
- const offset=standardOffset+(useDST&&madridDST(y,m,d)?1:0);
+ const offset=standardOffset+(useDST&&madridDST(y,m,d,civilHour)?1:0);
  const trueSolarMinutes=civilHour*60+eot+4*longitude-60*offset;
  return trueSolarMinutes/60;
 }
@@ -218,14 +218,17 @@ function updateRowGeometry(){
  $('rowGeometry').textContent=`Direcciones desde el norte geográfico, sentido horario. La fila siguiente queda hacia ${normal.toFixed(0)}°. Diferencia entre cara y eje de filas: ${diff.toFixed(1)}°.`+(error>5?' ADVERTENCIA: el modelo 2D supone que el eje de filas es perpendicular a la cara de los módulos; ajusta el azimut del eje para que la diferencia sea aproximadamente 90°.':' Geometría de filas coherente con la hipótesis perpendicular.');
 }
 function calcSolar(){
- const year=v('year'),lat=v('lat'),lon=v('lon'),tz=v('tz'),face=norm(v('faceAz')),rowAxis=norm(v('rowAz')),tilt=v('tilt'),start=v('start'),end=v('end'),step=v('interval'),tolerance=v('shadeTolerance')/100,L=moduleSlopeLength();
- if(!Number.isInteger(year)||year<2000||year>2100||!Number.isFinite(lat)||lat<=-90||lat>=90||!Number.isFinite(lon)||lon<-180||lon>180||!Number.isFinite(tz)||tz<-12||tz>14||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>24||end<=start||L<=0){$('solarOut').innerHTML='<div class="warn">Comprueba latitud, longitud, inclinación, dimensiones y horario.</div>';return null}
+ lastSolar=null;window.solarGap=undefined;
+ const year=v('year'),lat=v('lat'),lon=v('lon'),tz=v('tz'),faceRaw=v('faceAz'),axisRaw=v('rowAz'),face=norm(faceRaw),rowAxis=norm(axisRaw),tilt=v('tilt'),start=v('start'),end=v('end'),step=v('interval'),tolerance=v('shadeTolerance')/100,L=moduleSlopeLength();
+ const pw=v('pw'),ph=v('ph');
+ if(!Number.isInteger(year)||year<2000||year>2100||!Number.isFinite(lat)||lat<=-90||lat>=90||!Number.isFinite(lon)||lon<-180||lon>180||!Number.isFinite(tz)||tz<-12||tz>14||!Number.isFinite(faceRaw)||faceRaw<0||faceRaw>=360||!Number.isFinite(axisRaw)||axisRaw<0||axisRaw>=360||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>24||end<=start||!Number.isInteger(step)||step<=0||!Number.isFinite(pw)||pw<=0||!Number.isFinite(ph)||ph<=0||!Number.isFinite(L)||L<=0){$('solarOut').innerHTML='<div class="warn">Comprueba coordenadas, orientación, inclinación, dimensiones del panel, intervalo y horario.</div>';return null}
  if($('mode').value==='compact'&&(!Number.isFinite(tolerance)||tolerance<0||tolerance>0.5)){$('solarOut').innerHTML='<div class="warn">La sombra admisible debe estar entre 0 y 50 %.</div>';return null}
  const settings={year,lat,longitude:lon,tz,dst:$('dst').checked,faceAz:face,rowAxis,tilt,L,start,end,step,timeMode:$('timeMode').value,tolerance:$('mode').value==='compact'?tolerance:0};
  const rows=getMonths().map(m=>sampleMonth(m,settings));
  if(!rows.length||rows.every(r=>!r.samples.length)){$('solarOut').innerHTML='<div class="warn">No hay muestras con el Sol sobre el horizonte en el horario elegido.</div>';return null}
- const worstNo=rows.reduce((a,b)=>b.maxNoShade.gap>a.maxNoShade.gap?b:a,rows[0]);
- const worstTol=rows.reduce((a,b)=>b.maxTolerance.gap>a.maxTolerance.gap?b:a,rows[0]);
+ const validRows=rows.filter(r=>r.samples.length>0);
+ const worstNo=validRows.reduce((a,b)=>b.maxNoShade.gap>a.maxNoShade.gap?b:a,validRows[0]);
+ const worstTol=validRows.reduce((a,b)=>b.maxTolerance.gap>a.maxTolerance.gap?b:a,validRows[0]);
  const compact=$('mode').value==='compact';
  // Redondeo siempre hacia arriba al centímetro para no quedar por debajo del mínimo geométrico calculado.
  const rawGap=compact?worstTol.maxTolerance.gap:worstNo.maxNoShade.gap;
@@ -272,14 +275,11 @@ async function queryPVGIS(){
  }catch(err){pvgisData=null;status.innerHTML=`<b>No se pudo consultar PVGIS.</b><br>${safeText(err.message)}. Comprueba la conexión y vuelve a intentarlo. Las coordenadas siguen disponibles para el cálculo geométrico local.`;}
 }
 
-function findPVGISValue(obj,keys){
- if(!obj||typeof obj!=='object')return null;
- for(const [k,val] of Object.entries(obj)){
-  if(keys.includes(k.toLowerCase())&&Number.isFinite(Number(val)))return Number(val);
- }
- for(const val of Object.values(obj)){const found=findPVGISValue(val,keys);if(found!==null)return found;}
- return null;
+function pvgisFixedValue(obj,kind){
+ const value=obj?.inputs?.mounting_system?.fixed?.[kind]?.value;
+ return Number.isFinite(Number(value))?Number(value):null;
 }
+
 async function pvgisOptimal(){
  const lat=v('lat'),lon=v('lon'),out=$('pvgisOptimalOut');
  if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){out.textContent='Introduce coordenadas válidas antes de solicitar el óptimo.';return;}
@@ -297,9 +297,9 @@ async function pvgisOptimal(){
   ]);
   if(!tiltResp.ok||!bothResp.ok)throw new Error(`PVGIS respondió HTTP ${!tiltResp.ok?tiltResp.status:bothResp.status}`);
   const [tiltData,bothData]=await Promise.all([tiltResp.json(),bothResp.json()]);
-  const tilt=findPVGISValue(tiltData,['slope','angle','inclination']);
-  const bothTilt=findPVGISValue(bothData,['slope','angle','inclination']);
-  const aspectPV=findPVGISValue(bothData,['azimuth','aspect']);
+  const tilt=pvgisFixedValue(tiltData,'slope');
+  const bothTilt=pvgisFixedValue(bothData,'slope');
+  const aspectPV=pvgisFixedValue(bothData,'azimuth');
   if(tilt===null&&bothTilt===null)throw new Error('PVGIS respondió, pero no se identificaron los campos de inclinación óptima en el JSON.');
   const compass=aspectPV===null?null:((180+aspectPV)%360+360)%360;
   const fmt=x=>x===null?'No devuelto':`${x.toFixed(1)}°`;
@@ -326,8 +326,9 @@ $('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='A
 $('pack').onclick=()=>{
  let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();
  if(gap===null||!Number.isFinite(gap)||gap<0)return;
- let rw=v('rw'),rl=v('rl'),mx=v('mx'),my=v('my'),pg=v('pg')/100,tilt=v('tilt');
- let panelW=$('orient').value==='v'?v('pw'):v('ph'),slopeL=moduleSlopeLength(),footprintDepth=slopeL*Math.cos(rad(tilt));
+ let rw=v('rw'),rl=v('rl'),mx=v('mx'),my=v('my'),pg=v('pg')/100,tilt=v('tilt'),pw=v('pw'),ph=v('ph'),wp=v('wp'),manualGap=v('manual');
+ let panelW=$('orient').value==='v'?pw:ph,slopeL=moduleSlopeLength(),footprintDepth=slopeL*Math.cos(rad(tilt));
+ if(![gap,rw,rl,mx,my,pg,tilt,pw,ph,wp,panelW,slopeL].every(Number.isFinite)||rw<=0||rl<=0||mx<0||my<0||mx*2>=rw||my*2>=rl||pg<0||pw<=0||ph<=0||wp<=0||tilt<0||tilt>90||( $('gapMode').value==='manual'&&(manualGap<0||!Number.isFinite(manualGap)))){$('drawing').innerHTML='<div class="warn">Revisa las dimensiones de cubierta, márgenes, paneles, potencia y separación. Los valores deben ser válidos y la superficie útil debe ser positiva.</div>';layout=null;return;}
  if(footprintDepth<0.05){$('drawing').innerHTML='<div class="warn">La proyección horizontal del panel es demasiado pequeña para generar un plano de filas fiable con esta inclinación.</div>';return}
  let usableW=rw-2*mx,usableL=rl-2*my;
  if(usableW<=0||usableL<=0){$('drawing').innerHTML='<div class="warn">Los márgenes dejan una superficie útil nula o negativa.</div>';return}
@@ -341,13 +342,22 @@ $('pack').onclick=()=>{
  $('nPanels').textContent=count;$('kwp').textContent=(count*v('wp')/1000).toFixed(2)+' kWp';$('area').textContent=(count*v('pw')*v('ph')).toFixed(1)+' m²';$('rows').textContent=rows;
  $('details').innerHTML=`<p>Cubierta: ${rw.toFixed(2)} × ${rl.toFixed(2)} m. Panel: ${v('pw').toFixed(3)} × ${v('ph').toFixed(3)} m, ${v('wp')} Wp.</p><p>Separación libre entre filas: ${gap.toFixed(2)} m. Paso de filas: ${(footprintDepth+gap).toFixed(2)} m.</p><p>Ubicación: ${safeText($('place').value)} (${v('lat').toFixed(5)}°, ${v('lon').toFixed(5)}°). Inclinación: ${tilt}°; azimut cara: ${norm(v('faceAz'))}°; eje filas: ${norm(v('rowAz'))}°.</p>`;
 };
+function csvCell(value){const s=String(value??'');return /[\",\n\r]/.test(s)?'\"'+s.replace(/\"/g,'\"\"')+'\"':s;}
 $('csv').onclick=()=>{
  if(!lastSolar&&!layout){alert('Calcula las sombras o genera primero la distribución.');return}
  let lines=['Tipo,Mes,Separacion_sin_sombra_m,Separacion_elegida_m,Sombra_peor_caso_pct,Hora_critica,Altura_solar_deg,Azimut_solar_deg'];
- if(lastSolar)lastSolar.rows.forEach(r=>lines.push(['Solar',months[r.m],r.maxNoShade.gap.toFixed(3),lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),r.maxNoShade.sun.altitude.toFixed(2),r.maxNoShade.sun.azimuth.toFixed(2)].join(',')));
+ if(lastSolar)lastSolar.rows.forEach(r=>{const s=r.maxNoShade.sun;lines.push(['Solar',months[r.m],r.samples.length?r.maxNoShade.gap.toFixed(3):'',lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),s?s.altitude.toFixed(2):'',s?s.azimuth.toFixed(2):''].map(csvCell).join(','));});
  if(layout)lines.push(['Distribucion','', '',layout.gap.toFixed(3),'','','',''].join(','),`Paneles,${layout.count}` ,`Filas,${layout.rows}`,`Columnas,${layout.cols}`,`Potencia_kWp,${(layout.count*v('wp')/1000).toFixed(2)}`);
  const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-sombras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
+
+// Invalidar resultados antiguos cuando se modifican datos de entrada.
+const solarInputs=['lat','lon','tz','faceAz','rowAz','tilt','year','period','month','timeMode','start','end','interval','mode','shadeTolerance','dst','pw','ph'];
+solarInputs.forEach(id=>$(id).addEventListener('change',()=>{lastSolar=null;layout=null;window.solarGap=undefined;}));
+const layoutInputs=['rw','rl','mx','my','orient','pw','ph','wp','pg','manual','gapMode'];
+layoutInputs.forEach(id=>$(id).addEventListener('change',()=>{layout=null;}));
+$('calc').onclick=()=>{layout=null;calcSolar();};
+
 updateRowGeometry();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 window.showTab=showTab;
