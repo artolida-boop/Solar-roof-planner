@@ -1,4 +1,4 @@
-SOLAR ROOF PLANNER — PAQUETE CORREGIDO 3.2
+SOLAR ROOF PLANNER — PAQUETE 3.3 — SIMULADOR DE SEGUIDOR SOLAR
 
 Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - index.html
@@ -7,8 +7,9 @@ Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - icon.svg
 
 CAMBIOS DE ESTA ENTREGA
-- Se corrige la identificación de versión: esta entrega es 3.2, no 4.0.
+- Se corrige la identificación de versión: esta entrega es 3.3.
 - Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
+- Se añade una pestaña de simulación geométrica diaria de seguidor solar de un eje horizontal.
 - Se corrige la validación del campo de separación manual para que no bloquee el cálculo automático si el campo manual está vacío.
 - Se avisa cuando no cabe ningún panel en la cubierta.
 - Se añade exportación Excel compatible (.xls, formato SpreadsheetML) además del CSV y la impresión/guardado en PDF.
@@ -20,10 +21,14 @@ FUNCIONES PRESENTES
 - Conversión entre hora solar verdadera y hora civil, con cambio horario europeo.
 - Geolocalización del dispositivo, consulta de horizonte PVGIS y solicitud de ángulos óptimos PVGIS.
 - Exportación CSV, Excel compatible (.xls) e impresión/guardado en PDF.
+- Seguidor solar: azimut del eje configurable, fecha, horario solar o civil, intervalo de 15/30/60 minutos, límite mecánico ±°, tabla horaria, gráfica y exportación CSV.
 - Instalación PWA y caché offline básica.
 
 LIMITACIONES IMPORTANTES
-Esta entrega NO es la versión 4.0 ni incorpora todavía seguimiento solar motorizado, simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
+Esta entrega NO es la versión 4.0 ni incorpora todavía backtracking del seguidor, simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
 
 PUBLICACIÓN
-Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.2. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.3. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+
+SEGUIDOR SOLAR — NOTA DE USO
+El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El modelo es geométrico ideal y no incorpora backtracking, control por viento, sombras entre seguidores ni validación estructural o mecánica.
