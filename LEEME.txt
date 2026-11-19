@@ -1,4 +1,4 @@
-SOLAR ROOF PLANNER — PAQUETE 3.3 — SIMULADOR DE SEGUIDOR SOLAR
+SOLAR ROOF PLANNER — PAQUETE 3.4 — BACKTRACKING DEL SEGUIDOR SOLAR
 
 Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - index.html
@@ -7,9 +7,9 @@ Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - icon.svg
 
 CAMBIOS DE ESTA ENTREGA
-- Se corrige la identificación de versión: esta entrega es 3.3.
+- Se corrige la identificación de versión: esta entrega es 3.4.
 - Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
-- Se añade una pestaña de simulación geométrica diaria de seguidor solar de un eje horizontal.
+- Se añade backtracking geométrico al simulador diario del seguidor solar de un eje horizontal.
 - Se corrige la validación del campo de separación manual para que no bloquee el cálculo automático si el campo manual está vacío.
 - Se avisa cuando no cabe ningún panel en la cubierta.
 - Se añade exportación Excel compatible (.xls, formato SpreadsheetML) además del CSV y la impresión/guardado en PDF.
@@ -21,14 +21,22 @@ FUNCIONES PRESENTES
 - Conversión entre hora solar verdadera y hora civil, con cambio horario europeo.
 - Geolocalización del dispositivo, consulta de horizonte PVGIS y solicitud de ángulos óptimos PVGIS.
 - Exportación CSV, Excel compatible (.xls) e impresión/guardado en PDF.
-- Seguidor solar: azimut del eje configurable, fecha, horario solar o civil, intervalo de 15/30/60 minutos, límite mecánico ±°, tabla horaria, gráfica y exportación CSV.
+- Seguidor solar: azimut del eje configurable, fecha, horario solar o civil, intervalo de 15/30/60 minutos, límite mecánico ±°, ancho de mesa, distancia entre ejes, GCR, backtracking, tabla horaria, gráfica y exportación CSV.
 - Instalación PWA y caché offline básica.
 
 LIMITACIONES IMPORTANTES
-Esta entrega NO es la versión 4.0 ni incorpora todavía backtracking del seguidor, simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
+Esta entrega NO es la versión 4.0 ni incorpora todavía simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
 
 PUBLICACIÓN
-Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.3. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.4. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
 
 SEGUIDOR SOLAR — NOTA DE USO
-El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El modelo es geométrico ideal y no incorpora backtracking, control por viento, sombras entre seguidores ni validación estructural o mecánica.
+El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El backtracking es una aproximación geométrica para filas paralelas sobre terreno horizontal. No incorpora control por viento, terreno irregular, obstáculos ni validación estructural o mecánica.
+
+
+BACKTRACKING — DATOS DE ENTRADA
+- Ancho de mesa: dimensión efectiva de los módulos en la dirección perpendicular al eje de giro.
+- Distancia entre ejes: separación horizontal entre ejes de filas consecutivas. Debe ser igual o mayor que el ancho de mesa.
+- GCR = ancho de mesa / distancia entre ejes. El backtracking reduce el ángulo ideal cuando la geometría indica riesgo de sombreado entre filas; después se aplica el límite mecánico.
+- Si el backtracking está desactivado, se conserva el seguimiento geométrico ideal antes del límite mecánico.
+- La separación debe introducirse en metros y representar la geometría real de las mesas; valores incorrectos producen resultados incorrectos.

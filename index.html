@@ -36,7 +36,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.3 · simulador de seguidor solar de un eje</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.4 · seguidor solar con backtracking</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="tracker">Seguidor solar</button><button data-tab="results">Resultados</button>
 </nav>
@@ -107,18 +107,21 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <label>Fecha de simulación<input id="trackerDate" type="date"></label>
 <label>Azimut del eje horizontal (°)<input id="trackerAxis" type="number" value="0" min="0" max="359.99" step="1"></label>
 <label>Límite mecánico de giro (±°)<input id="trackerLimit" type="number" value="60" min="0" max="90" step="1"></label>
+<label>Ancho de mesa de módulos (m)<input id="trackerWidth" type="number" value="2.2" min="0.1" step="0.1"></label>
+<label>Distancia entre ejes de filas (m)<input id="trackerPitch" type="number" value="6" min="0.1" step="0.1"></label>
 <label>Hora inicial<input id="trackerStart" type="number" value="6" min="0" max="23.99" step="0.25"></label>
 <label>Hora final<input id="trackerEnd" type="number" value="18" min="0.01" max="24" step="0.25"></label>
 <label>Intervalo<select id="trackerStep"><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">60 minutos</option></select></label>
 <label>Referencia horaria<select id="trackerTimeMode"><option value="solar">Hora solar verdadera</option><option value="civil">Hora oficial local</option></select></label>
 </div>
-<div class="notice">El azimut del eje se mide desde el norte geográfico y en sentido horario: 0° = norte-sur; 90° = este-oeste. El giro se expresa respecto a la posición de referencia con la normal del módulo vertical (plano del panel horizontal): positivo hacia el este del eje y negativo hacia el oeste.</div>
+<div class="notice">El azimut del eje se mide desde el norte geográfico y en sentido horario: 0° = norte-sur; 90° = este-oeste. El giro se expresa respecto a la posición de referencia con la normal del módulo vertical (plano del panel horizontal): positivo hacia el este del eje y negativo hacia el oeste. Para el backtracking, el ancho de mesa se mide perpendicularmente al eje y la distancia entre ejes es la separación horizontal entre filas.</div>
+<label class="inline"><input id="trackerBacktracking" type="checkbox" checked> Activar backtracking para evitar sombras entre filas</label>
 <button class="primary" id="trackerCalc">Calcular seguimiento diario</button>
 <div id="trackerOut" aria-live="polite"><p class="muted">Configura el eje, la fecha y los límites y pulsa «Calcular».</p></div>
 </div>
-<div class="card"><h2>Ángulo de seguimiento durante el día</h2><canvas id="trackerChart" width="900" height="300" aria-label="Gráfico del ángulo ideal y del ángulo limitado del seguidor solar"></canvas><div class="mutedbox">La curva ideal muestra el giro geométrico sin límites; la curva aplicada respeta el tope mecánico configurado.</div></div>
+<div class="card"><h2>Ángulo de seguimiento durante el día</h2><canvas id="trackerChart" width="900" height="300" aria-label="Gráfico del ángulo ideal y del ángulo limitado del seguidor solar"></canvas><div class="mutedbox">Se comparan el ángulo geométrico ideal, el ángulo corregido por backtracking y el giro final tras aplicar el límite mecánico.</div></div>
 <div class="card"><h2>Tabla de posiciones</h2><div id="trackerTable" class="table-wrap"><p class="muted">La tabla aparecerá al realizar el cálculo.</p></div><button type="button" id="trackerCsv" class="primary" disabled>Exportar tabla del seguidor a CSV</button></div>
-<div class="notice"><b>Alcance del modelo:</b> seguidor de un eje horizontal ideal, con eje recto y posición de referencia vertical. No incluye backtracking, sombreado entre seguidores, stow por viento, topografía, límites de cableado, deformaciones, geometría de cimentación ni cálculo estructural. El ángulo no constituye un diseño mecánico ni una predicción de producción energética.</div>
+<div class="notice"><b>Alcance del modelo:</b> backtracking geométrico simplificado para filas paralelas, eje horizontal y terreno plano, usando GCR = ancho de mesa / distancia entre ejes. No incluye backtracking 3D, terreno irregular, seguidores desalineados, obstáculos, stow por viento, límites de cableado, deformaciones, cimentación ni cálculo estructural. No es un diseño mecánico ni una predicción de producción energética.</div>
 </section>
 <section id="results">
 <div class="card"><h2>Resumen del proyecto</h2><div class="stats">
@@ -401,35 +404,38 @@ function trackerAngle(sun,axisAz){
 function drawTrackerChart(rows,limit){
  const c=$('trackerChart'),ctx=c.getContext('2d'),w=c.width,h=c.height,p={l:58,r:22,t:24,b:42};
  ctx.clearRect(0,0,w,h);ctx.font='12px system-ui';ctx.fillStyle=getComputedStyle(document.body).color;ctx.strokeStyle='#9998';ctx.lineWidth=1;
- const vals=rows.flatMap(r=>[r.ideal,r.applied]).filter(Number.isFinite);let max=Math.max(30,Math.ceil(Math.max(limit,...vals.map(Math.abs))/10)*10),min=-max;
+ const vals=rows.flatMap(r=>[r.ideal,r.backtracked,r.applied]).filter(Number.isFinite);let max=Math.max(30,Math.ceil(Math.max(limit,...vals.map(Math.abs))/10)*10),min=-max;
  const x=i=>p.l+(w-p.l-p.r)*i/Math.max(1,rows.length-1),y=v=>p.t+(h-p.t-p.b)*(max-v)/(max-min);
  for(let v=min;v<=max;v+=max/3){ctx.beginPath();ctx.moveTo(p.l,y(v));ctx.lineTo(w-p.r,y(v));ctx.stroke();ctx.fillText(v+'°',8,y(v)+4)}
  ctx.beginPath();ctx.strokeStyle='#888';ctx.setLineDash([5,4]);ctx.moveTo(p.l,y(0));ctx.lineTo(w-p.r,y(0));ctx.stroke();ctx.setLineDash([]);
  const draw=(key,color,width)=>{ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=width;let started=false;rows.forEach((r,i)=>{if(!Number.isFinite(r[key])){started=false;return}if(!started){ctx.moveTo(x(i),y(r[key]));started=true}else ctx.lineTo(x(i),y(r[key]));});ctx.stroke()};
- draw('ideal','#287fa0',2.5);draw('applied','#126b4b',2.5);
- ctx.fillStyle=getComputedStyle(document.body).color;ctx.fillText('Hora',w/2-12,h-8);ctx.fillStyle='#287fa0';ctx.fillRect(w-250,8,16,3);ctx.fillText('Ángulo ideal',w-228,13);ctx.fillStyle='#126b4b';ctx.fillRect(w-130,8,16,3);ctx.fillText('Ángulo aplicado',w-108,13);
+ draw('ideal','#287fa0',2);draw('backtracked','#c47b24',2.5);draw('applied','#126b4b',2.5);
+ ctx.fillStyle=getComputedStyle(document.body).color;ctx.fillText('Hora',w/2-12,h-8);ctx.fillStyle='#287fa0';ctx.fillRect(w-370,8,16,3);ctx.fillText('Ideal',w-348,13);ctx.fillStyle='#c47b24';ctx.fillRect(w-270,8,16,3);ctx.fillText('Backtracking',w-248,13);ctx.fillStyle='#126b4b';ctx.fillRect(w-130,8,16,3);ctx.fillText('Aplicado',w-108,13);
  if(rows.length){[0,Math.floor((rows.length-1)/2),rows.length-1].forEach(i=>ctx.fillText(rows[i].time,p.l+(w-p.l-p.r)*i/Math.max(1,rows.length-1)-15,h-22));}
 }
 function calculateTracker(){
- const dateVal=$('trackerDate').value,axis=v('trackerAxis'),limit=v('trackerLimit'),start=v('trackerStart'),end=v('trackerEnd'),step=v('trackerStep');
+ const dateVal=$('trackerDate').value,axis=v('trackerAxis'),limit=v('trackerLimit'),start=v('trackerStart'),end=v('trackerEnd'),step=v('trackerStep'),width=v('trackerWidth'),pitch=v('trackerPitch'),backtracking=$('trackerBacktracking').checked;
  const lat=v('lat'),lon=v('lon'),tz=v('tz'),civil=$('trackerTimeMode').value==='civil';
- if(!dateVal||![axis,limit,start,end,step,lat,lon,tz].every(Number.isFinite)||axis<0||axis>=360||limit<0||limit>90||start<0||end>24||end<=start||step<=0||lat<-90||lat>90||lon<-180||lon>180){$('trackerOut').innerHTML='<div class="warn">Revisa la fecha, las coordenadas, el huso horario, el azimut del eje, los límites y el intervalo.</div>';return;}
- const [yy,mm,dd]=dateVal.split('-').map(Number),y=yy,m=mm-1,d=dd,doy=dayOfYear(y,m,d),dst=$('dst').checked;
+ if(!dateVal||![axis,limit,start,end,step,width,pitch,lat,lon,tz].every(Number.isFinite)||width<=0||pitch<=0||pitch<width||axis<0||axis>=360||limit<0||limit>90||start<0||end>24||end<=start||step<=0||lat<-90||lat>90||lon<-180||lon>180){$('trackerOut').innerHTML='<div class="warn">Revisa la fecha, coordenadas, huso horario, azimut, límite mecánico, intervalo y geometría: el ancho de mesa debe ser mayor que cero y la distancia entre ejes no puede ser menor que ese ancho.</div>';return;}
+ const [yy,mm,dd]=dateVal.split('-').map(Number),y=yy,m=mm-1,d=dd,doy=dayOfYear(y,m,d),dst=$('dst').checked,gcr=width/pitch;
  trackerRows=[];
  for(let minutes=Math.round(start*60);minutes<=Math.round(end*60)+1e-6;minutes+=step){
   const hour=minutes/60,solarHour=civil?solarTimeFromCivil(y,m,d,hour,lon,tz,dst):hour;
   const sun=sunPosition(lat,y,doy,solarHour),day=sun.up>0;
-  const ideal=day?trackerAngle(sun,axis):NaN,applied=day?clamp(ideal,-limit,limit):NaN;
-  trackerRows.push({time:formatHour(hour),solarTime:solarHour,altitude:sun.altitude,azimuth:sun.azimuth,ideal,applied,limited:day&&Math.abs(ideal-applied)>1e-7});
+  const ideal=day?trackerAngle(sun,axis):NaN;
+  let backtracked=ideal;
+  if(day&&backtracking&&gcr>0){const ratio=Math.abs(Math.cos(rad(ideal)))/gcr;if(ratio<1)backtracked=Math.sign(ideal)*deg(Math.acos(clamp(ratio,0,1)));}
+  const applied=day?clamp(backtracked,-limit,limit):NaN;
+  trackerRows.push({time:formatHour(hour),solarTime:solarHour,altitude:sun.altitude,azimuth:sun.azimuth,ideal,backtracked,applied,backtrackedChanged:day&&Math.abs(ideal-backtracked)>1e-7,limited:day&&Math.abs(backtracked-applied)>1e-7});
  }
- const daylight=trackerRows.filter(r=>Number.isFinite(r.ideal)),limited=daylight.filter(r=>r.limited),peak=daylight.reduce((a,r)=>Math.abs(r.ideal)>Math.abs(a.ideal)?r:a,daylight[0]||{ideal:NaN});
- $('trackerOut').innerHTML=`<div class="stats"><div class="stat"><div class="num">${daylight.length}</div><small>Muestras con Sol sobre el horizonte</small></div><div class="stat"><div class="num">${Number.isFinite(peak.ideal)?peak.ideal.toFixed(1)+'°':'—'}</div><small>Mayor giro ideal absoluto</small></div><div class="stat"><div class="num">${limited.length}</div><small>Muestras que alcanzan el límite</small></div><div class="stat"><div class="num">±${limit.toFixed(1)}°</div><small>Límite mecánico configurado</small></div></div><p>Fecha: <b>${dateVal}</b> · Coordenadas: ${lat.toFixed(5)}°, ${lon.toFixed(5)}° · Eje: ${axis.toFixed(1)}° · Horario: ${civil?'hora oficial local':'hora solar verdadera'}.</p>${daylight.length?'':'<div class="warn">No hay muestras con el Sol sobre el horizonte en el horario elegido.</div>'}`;
+ const daylight=trackerRows.filter(r=>Number.isFinite(r.ideal)),limited=daylight.filter(r=>r.limited),corrected=daylight.filter(r=>r.backtrackedChanged),peak=daylight.reduce((a,r)=>Math.abs(r.ideal)>Math.abs(a.ideal)?r:a,daylight[0]||{ideal:NaN});
+ $('trackerOut').innerHTML=`<div class="stats"><div class="stat"><div class="num">${daylight.length}</div><small>Muestras con Sol sobre el horizonte</small></div><div class="stat"><div class="num">${Number.isFinite(peak.ideal)?peak.ideal.toFixed(1)+'°':'—'}</div><small>Mayor giro ideal absoluto</small></div><div class="stat"><div class="num">${corrected.length}</div><small>Muestras corregidas por backtracking</small></div><div class="stat"><div class="num">${limited.length}</div><small>Muestras limitadas mecánicamente</small></div></div><p>Fecha: <b>${dateVal}</b> · Coordenadas: ${lat.toFixed(5)}°, ${lon.toFixed(5)}° · Eje: ${axis.toFixed(1)}° · GCR: ${(gcr*100).toFixed(1)}% · Backtracking: ${backtracking?'activado':'desactivado'} · Límite: ±${limit.toFixed(1)}° · Horario: ${civil?'hora oficial local':'hora solar verdadera'}.</p>${daylight.length?'':'<div class="warn">No hay muestras con el Sol sobre el horizonte en el horario elegido.</div>'}`;
  const fmt=n=>Number.isFinite(n)?n.toFixed(1)+'°':'—';
- $('trackerTable').innerHTML=`<table><thead><tr><th>Hora</th><th>Hora solar</th><th>Altura solar</th><th>Azimut solar</th><th>Giro ideal</th><th>Giro aplicado</th><th>Tope alcanzado</th></tr></thead><tbody>${trackerRows.map(r=>`<tr><td>${r.time}</td><td>${formatHour(r.solarTime)}</td><td>${fmt(r.altitude)}</td><td>${fmt(r.azimuth)}</td><td>${fmt(r.ideal)}</td><td>${fmt(r.applied)}</td><td>${r.limited?'Sí':'No'}</td></tr>`).join('')}</tbody></table>`;
+ $('trackerTable').innerHTML=`<table><thead><tr><th>Hora</th><th>Hora solar</th><th>Altura solar</th><th>Azimut solar</th><th>Giro ideal</th><th>Con backtracking</th><th>Giro final</th><th>Backtracking</th><th>Tope alcanzado</th></tr></thead><tbody>${trackerRows.map(r=>`<tr><td>${r.time}</td><td>${formatHour(r.solarTime)}</td><td>${fmt(r.altitude)}</td><td>${fmt(r.azimuth)}</td><td>${fmt(r.ideal)}</td><td>${fmt(r.backtracked)}</td><td>${fmt(r.applied)}</td><td>${r.backtrackedChanged?'Sí':'No'}</td><td>${r.limited?'Sí':'No'}</td></tr>`).join('')}</tbody></table>`;
  $('trackerCsv').disabled=!trackerRows.length;drawTrackerChart(trackerRows,limit);
 }
 $('trackerCalc').onclick=calculateTracker;
-$('trackerCsv').onclick=()=>{if(!trackerRows.length)return;const head=['Hora','Hora_solar','Altura_solar_deg','Azimut_solar_deg','Giro_ideal_deg','Giro_aplicado_deg','Limite_alcanzado'];const lines=[head,...trackerRows.map(r=>[r.time,Number.isFinite(r.solarTime)?r.solarTime.toFixed(3):'',r.altitude.toFixed(2),r.azimuth.toFixed(2),Number.isFinite(r.ideal)?r.ideal.toFixed(2):'',Number.isFinite(r.applied)?r.applied.toFixed(2):'',r.limited?'Si':'No'])].map(row=>row.map(csvCell).join(','));const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-seguidor-solar.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+$('trackerCsv').onclick=()=>{if(!trackerRows.length)return;const head=['Hora','Hora_solar','Altura_solar_deg','Azimut_solar_deg','Giro_ideal_deg','Giro_backtracking_deg','Giro_final_deg','Backtracking_aplicado','Limite_mecanico_alcanzado'];const lines=[head,...trackerRows.map(r=>[r.time,Number.isFinite(r.solarTime)?r.solarTime.toFixed(3):'',r.altitude.toFixed(2),r.azimuth.toFixed(2),Number.isFinite(r.ideal)?r.ideal.toFixed(2):'',Number.isFinite(r.backtracked)?r.backtracked.toFixed(2):'',Number.isFinite(r.applied)?r.applied.toFixed(2):'',r.backtrackedChanged?'Si':'No',r.limited?'Si':'No'])].map(row=>row.map(csvCell).join(','));const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-seguidor-solar.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
 // Fecha local del dispositivo como valor inicial del simulador.
 (()=>{const now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);$('trackerDate').value=local.toISOString().slice(0,10);})();
 
