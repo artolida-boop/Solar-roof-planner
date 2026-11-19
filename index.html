@@ -37,7 +37,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.6 · Coplanar y estructura · PVGIS</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.7 · Azimut manual y brújula · PVGIS</div></div></header>
 <nav>
 <button class="active" data-tab="solar">Sol y sombras</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -80,6 +80,9 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </div>
 <div class="card"><h2>Geometría de módulos y filas</h2><div class="grid">
 <label>Azimut de la cara del módulo (°)<input id="faceAz" type="number" value="180" min="0" max="359.99" step="1"></label>
+<label>Medición de orientación<select id="azimuthMode"><option value="manual">Introducir manualmente</option><option value="compass">Medir con brújula del móvil</option></select></label>
+<div class="inline" style="grid-column:1/-1"><button type="button" id="measureAzimuth">Medir azimut con el móvil</button><span class="muted">Apunta el borde superior del móvil hacia donde miran los paneles.</span></div>
+<div id="azimuthStatus" class="notice" aria-live="polite">El valor inicial de 180° es una referencia sur, no una medición automática. El GPS obtiene la ubicación, pero no la orientación del tejado. Puedes introducir el azimut o medirlo con la brújula del móvil.</div>
 <label>Azimut del eje de las filas (°)<input id="rowAz" type="number" value="90" min="0" max="359.99" step="1"></label>
 </div>
 <div class="card" style="margin-top:12px"><h3>Montaje coplanar</h3><p class="muted">Módulos colocados paralelos a la cubierta. Introduce aquí la inclinación óptima o real de esta instalación.</p><label>Ángulo óptimo coplanar (°)<input id="tiltCoplanar" type="number" value="30" min="0" max="90" step="1"></label></div>
@@ -325,6 +328,39 @@ $('gpsLocation').onclick=()=>{
 };
 
 $('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123';updatePvgisLink();}};
+function setAzimuthFromCompass(degrees){
+ const az=((degrees%360)+360)%360;
+ $('faceAz').value=az.toFixed(1);$('azimuthMode').value='compass';
+ $('azimuthStatus').textContent=`Orientación medida: ${az.toFixed(1)}°. Comprueba que el borde superior del móvil apuntaba hacia donde miran los paneles. Puedes corregir el valor manualmente.`;
+ updateRowGeometry();updatePvgisLink();lastSolar=null;layout=null;
+}
+$('measureAzimuth').onclick=async()=>{
+ const status=$('azimuthStatus');
+ if(!('DeviceOrientationEvent' in window)){status.textContent='Este dispositivo o navegador no ofrece brújula. Introduce el azimut manualmente.';return;}
+ try{
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+   const permission=await DeviceOrientationEvent.requestPermission();
+   if(permission!=='granted'){status.textContent='No se concedió permiso para usar la brújula. Puedes introducir el azimut manualmente.';return;}
+  }
+ }catch(error){status.textContent='No se pudo activar la brújula. Comprueba los permisos del navegador o introduce el azimut manualmente.';return;}
+ status.textContent='Midiendo… Mantén el móvil plano y apunta su borde superior en la dirección hacia la que miran los paneles.';
+ let captured=false;
+ const finish=(event)=>{
+  if(captured)return;
+  let heading=Number.isFinite(event.webkitCompassHeading)?event.webkitCompassHeading:null;
+  if(heading===null&&event.absolute===true&&Number.isFinite(event.alpha)){
+   const screenAngle=(screen.orientation&&Number.isFinite(screen.orientation.angle))?screen.orientation.angle:0;
+   heading=(360-event.alpha+screenAngle)%360;
+  }
+  if(heading===null)return;
+  captured=true;
+  window.removeEventListener('deviceorientation',finish,true);
+  window.removeEventListener('deviceorientationabsolute',finish,true);
+  setAzimuthFromCompass(heading);
+ };
+ window.addEventListener('deviceorientation',finish,true);
+ window.addEventListener('deviceorientationabsolute',finish,true);
+};
 ['faceAz','rowAz'].forEach(id=>$(id).addEventListener('input',updateRowGeometry));
 $('pack').onclick=()=>{
  let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();

@@ -67,3 +67,7 @@ Versión 3.5.6: Sol y sombras pasa a ser la primera pestaña. En esa pestaña ha
 
 
 CAMBIO 3.5.6: en «Sol y sombras» se separan los ajustes de montaje coplanar y montaje con estructura. Cada modalidad tiene su propio campo de ángulo óptimo. En «Configuración del estudio» se elige qué modalidad se calcula; el ángulo seleccionado alimenta el cálculo de sombras, la distribución y el enlace PVGIS. La caché del service worker se actualiza a v16.
+
+
+VERSIÓN 3.5.7 – AZIMUT
+El azimut de la cara de los módulos se puede introducir manualmente o medir con la brújula del móvil (si el navegador y el dispositivo lo permiten). Para medirlo, mantén el móvil plano y apunta su borde superior hacia donde miran los paneles. El GPS solo determina la ubicación, no la orientación. El valor inicial de 180° es una referencia sur, no una medición.
