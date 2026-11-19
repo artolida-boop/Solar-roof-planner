@@ -29,7 +29,7 @@ input[type=checkbox]{display:inline-block;width:auto;min-height:0;margin:0 6px 0
 .good{border-left:4px solid var(--green);padding:9px 11px;background:var(--soft);font-size:12px;margin:9px 0;border-radius:6px}
 .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px;min-width:650px}td,th{text-align:right;padding:7px 5px;border-bottom:1px solid var(--line);white-space:nowrap}td:first-child,th:first-child{text-align:left}
 canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;display:block;margin-top:8px}
-.inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hidden{display:none!important}.mutedbox{font-size:12px;opacity:.78;margin-top:7px;line-height:1.45}
+.inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hidden{display:none!important}.legacy-hidden{display:none!important}.mutedbox{font-size:12px;opacity:.78;margin-top:7px;line-height:1.45}
 svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;display:block}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media print{nav,button,.notice{display:none!important}body{max-width:none;padding:0}section{display:block!important}.card{break-inside:avoid}}
@@ -37,9 +37,9 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.7 · Azimut manual y brújula · PVGIS</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.8 · Ubicación y acceso a PVGIS</div></div></header>
 <nav>
-<button class="active" data-tab="solar">Sol y sombras</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
+<button class="active" data-tab="solar">Ubicación y PVGIS</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
 <section id="roof">
 <div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
@@ -68,17 +68,19 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </div>
 <div class="inline"><button type="button" id="gpsLocation">Usar ubicación del móvil</button></div>
 <div id="locationStatus" class="notice" aria-live="polite">Ubicación de referencia cargada. Puedes usar el GPS del móvil o introducir las coordenadas manualmente.</div>
-<div class="mutedbox">PVGIS necesita latitud y longitud. Puedes obtenerlas con el GPS del móvil o introducirlas manualmente. El cálculo de sombras entre filas de Solar Roof Planner se realiza de forma independiente.</div>
-<div class="card" style="margin-top:12px"><h3>Consultar PVGIS con estas coordenadas</h3>
-<p>Abre directamente el cálculo oficial de PVGIS con la ubicación, potencia objetivo, inclinación y orientación de este proyecto. Se mostrarán los resultados en formato JSON.</p>
-<div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
-<div class="inline"><a id="openPvgis" href="https://re.jrc.ec.europa.eu/pvg_tools/en/tools.html#PVP" target="_blank" rel="noopener" style="color:#1677d2;text-decoration:underline;font-weight:700">Abrir cálculo PVGIS con estas coordenadas</a></div>
-<p><a href="https://re.jrc.ec.europa.eu/pvg_tools/en/tools.html#PVP" target="_blank" rel="noopener" style="color:#1677d2;text-decoration:underline">Abrir PVGIS interactivo (mapa y herramientas)</a></p>
-<div id="pvgisExternalStatus" class="notice" aria-live="polite">Las coordenadas se actualizarán automáticamente al cambiar la ubicación.</div>
+<div class="mutedbox">Introduce la ubicación manualmente o utiliza el GPS. Después copia las coordenadas y pégalas en el buscador de ubicación de PVGIS.</div>
+<div class="card" style="margin-top:12px"><h3>Ubicación para PVGIS</h3>
+<p>Las coordenadas se preparan en formato decimal para copiarlas fácilmente. Abre PVGIS y pégalas en su buscador de ubicación para trabajar allí con inclinación, orientación, tecnología y demás parámetros disponibles.</p>
+<div class="grid">
+<label>Coordenadas para copiar<input id="coordsCopy" type="text" readonly value="38.33892, -0.48123"></label>
+<div class="inline" style="align-items:end"><button type="button" id="copyCoords">Copiar coordenadas</button></div>
+</div>
+<p><a href="https://re.jrc.ec.europa.eu/pvg_tools/en/" target="_blank" rel="noopener" style="color:#1677d2;text-decoration:underline;font-weight:700">Abrir herramienta oficial PVGIS</a></p>
+<div id="pvgisExternalStatus" class="notice" aria-live="polite">Copia las coordenadas y pégalas en el buscador del mapa de PVGIS.</div>
 </div>
 <label class="inline"><input id="dst" type="checkbox" checked> Aplicar horario de verano europeo automáticamente al usar hora civil</label>
 </div>
-<div class="card"><h2>Geometría de módulos y filas</h2><div class="grid">
+<div class="card legacy-hidden"><h2>Geometría de módulos y filas</h2><div class="grid">
 <label>Azimut de la cara del módulo (°)<input id="faceAz" type="number" value="180" min="0" max="359.99" step="1"></label>
 <label>Medición de orientación<select id="azimuthMode"><option value="manual">Introducir manualmente</option><option value="compass">Medir con brújula del móvil</option></select></label>
 <div class="inline" style="grid-column:1/-1"><button type="button" id="measureAzimuth">Medir azimut con el móvil</button><span class="muted">Apunta el borde superior del móvil hacia donde miran los paneles.</span></div>
@@ -89,7 +91,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="card" style="margin-top:12px"><h3>Montaje con estructura</h3><p class="muted">Módulos elevados sobre estructura. Puedes introducir una inclinación distinta de la coplanar.</p><label>Ángulo óptimo con estructura (°)<input id="tiltStructure" type="number" value="30" min="0" max="90" step="1"></label></div>
 <div class="card" style="margin-top:12px"><h3>Configuración del estudio</h3><label>Tipo de montaje que se analizará<select id="mountType"><option value="coplanar">Coplanar</option><option value="structure">Con estructura</option></select></label><p class="mutedbox">El cálculo de sombras, la distribución y el enlace a PVGIS utilizarán el ángulo del tipo de montaje seleccionado. Los dos ángulos se guardan por separado.</p><input id="tilt" type="hidden" value="30"></div>
 <div id="rowGeometry" class="mutedbox">Azimut medido desde el norte geográfico, en sentido horario. El eje de filas debería ser perpendicular al azimut de la cara del módulo.</div></div>
-<div class="card"><h2>Periodo y horario de análisis</h2><div class="grid">
+<div class="card legacy-hidden"><h2>Periodo y horario de análisis</h2><div class="grid">
 <label>Año de referencia<input id="year" type="number" value="2026" min="2000" max="2100" step="1"></label>
 <label>Periodo<select id="period"><option value="all">Todo el año · día 21 de cada mes</option><option value="winter">Invierno · dic-feb</option><option value="summer">Verano · jun-ago</option><option value="month">Un mes concreto</option></select></label>
 <label>Mes<select id="month"><option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option><option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option><option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option><option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option></select></label>
@@ -98,7 +100,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <label>Hasta<input id="end" type="number" value="15" min="0.01" max="24" step="0.25"></label>
 <label>Resolución<select id="interval"><option value="5">5 minutos (recomendado)</option><option value="10">10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select></label>
 </div><div id="timeHelp" class="mutedbox">Se analizarán las horas solares verdaderas indicadas. En este modo la longitud no cambia la posición solar; se utiliza si eliges hora oficial local.</div></div>
-<div class="card"><h2>Criterio de separación entre filas</h2>
+<div class="card legacy-hidden"><h2>Criterio de separación entre filas</h2>
 <label>Criterio<select id="mode"><option value="full">Sin sombras en todo el horario elegido</option><option value="compact">Separación compacta con sombra parcial limitada</option></select></label>
 <div id="toleranceWrap" class="hidden"><label>Sombra máxima admisible sobre el módulo en el peor instante (%)<input id="shadeTolerance" type="number" value="10" min="0" max="50" step="1"></label><div class="mutedbox">El programa calcula la menor separación que mantiene la fracción geométrica sombreada por debajo de este porcentaje en todas las muestras del periodo.</div></div>
 <button class="primary" id="calc">Calcular sombras y separación anual</button>
@@ -303,19 +305,26 @@ $('tiltCoplanar').addEventListener('input',()=>{if($('mountType').value==='copla
 $('tiltStructure').addEventListener('input',()=>{if($('mountType').value==='structure')syncMountingAngle();});
 syncMountingAngle();
 function refreshPvgisCoordinates(){
- const lat=v('lat'),lon=v('lon'),latOut=$('pvgisLat'),lonOut=$('pvgisLon'),status=$('pvgisExternalStatus');
- if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud válida (−90 a 90) y una longitud válida (−180 a 180).';return false;}
- latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Se enviarán directamente a la consulta oficial de PVGIS.';return true;
+ const lat=v('lat'),lon=v('lon'),field=$('coordsCopy'),status=$('pvgisExternalStatus');
+ if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){
+  field.value='';status.textContent='Introduce una latitud válida (−90 a 90) y una longitud válida (−180 a 180).';return false;
+ }
+ field.value=lat.toFixed(5)+', '+lon.toFixed(5);
+ status.textContent='Coordenadas listas para copiar y pegar en el buscador de PVGIS.';return true;
 }
-function updatePvgisLink(){
- if(!refreshPvgisCoordinates())return;
- const lat=v('lat'),lon=v('lon'),peakpower=Number(v('targetKwp')),tilt=Number(v('tilt')),faceAz=Number(v('faceAz'));
- if(!Number.isFinite(peakpower)||peakpower<=0||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(faceAz))return;
- const aspect=((faceAz-180+540)%360)-180;
- const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:String(peakpower),loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(tilt),aspect:String(aspect),outputformat:'json',browser:'0'});
- $('openPvgis').href='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
-}
-['lat','lon','targetKwp','tilt','faceAz'].forEach(id=>$(id).addEventListener('input',updatePvgisLink));
+function updatePvgisLink(){refreshPvgisCoordinates();}
+['lat','lon'].forEach(id=>$(id).addEventListener('input',updatePvgisLink));
+$('copyCoords').onclick=async()=>{
+ const field=$('coordsCopy');if(!refreshPvgisCoordinates())return;
+ try{
+  await navigator.clipboard.writeText(field.value);
+  $('pvgisExternalStatus').textContent='Coordenadas copiadas. Abre PVGIS y pégalas en el buscador de ubicación.';
+ }catch(e){
+  field.focus();field.select();
+  const ok=document.execCommand('copy');
+  $('pvgisExternalStatus').textContent=ok?'Coordenadas copiadas. Abre PVGIS y pégalas en el buscador de ubicación.':'Selecciona las coordenadas y cópialas manualmente.';
+ }
+};
 updatePvgisLink();
 $('gpsLocation').onclick=()=>{
  const status=$('locationStatus');
