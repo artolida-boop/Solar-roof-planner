@@ -37,7 +37,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.3 · Potencia objetivo y distribución</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.4 · PVGIS con coordenadas</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -69,10 +69,10 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="inline"><button type="button" id="gpsLocation">Usar ubicación del móvil</button></div>
 <div id="locationStatus" class="notice" aria-live="polite">Ubicación de referencia cargada. Puedes usar el GPS del móvil o introducir las coordenadas manualmente.</div>
 <div class="mutedbox">PVGIS necesita latitud y longitud. Puedes obtenerlas con el GPS del móvil o introducirlas manualmente. El cálculo de sombras entre filas de Solar Roof Planner se realiza de forma independiente.</div>
-<div class="card" style="margin-top:12px"><h3>Abrir PVGIS con estas coordenadas</h3>
-<p>Se abrirá la herramienta oficial de PVGIS en una pestaña nueva. Las coordenadas de esta ubicación se añadirán automáticamente al enlace.</p>
+<div class="card" style="margin-top:12px"><h3>Consultar PVGIS con estas coordenadas</h3>
+<p>Abre directamente el cálculo oficial de PVGIS con la ubicación, potencia objetivo, inclinación y orientación de este proyecto. Se mostrarán los resultados en formato JSON.</p>
 <div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
-<div class="inline"><button type="button" class="primary" id="openPvgis">Abrir PVGIS en otra pestaña</button></div>
+<div class="inline"><button type="button" class="primary" id="openPvgis">Consultar PVGIS con estas coordenadas</button></div>
 <div id="pvgisExternalStatus" class="notice" aria-live="polite">Las coordenadas se actualizarán automáticamente al cambiar la ubicación.</div>
 </div>
 <label class="inline"><input id="dst" type="checkbox" checked> Aplicar horario de verano europeo automáticamente al usar hora civil</label>
@@ -289,12 +289,18 @@ $('timeMode').onchange=()=>{$('timeHelp').textContent=$('timeMode').value==='sol
 function refreshPvgisCoordinates(){
  const lat=v('lat'),lon=v('lon'),latOut=$('pvgisLat'),lonOut=$('pvgisLon'),status=$('pvgisExternalStatus');
  if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud válida (−90 a 90) y una longitud válida (−180 a 180).';return false;}
- latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Se incorporarán al abrir la herramienta oficial de PVGIS.';return true;
+ latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Se enviarán directamente a la consulta oficial de PVGIS.';return true;
 }
 $('openPvgis').onclick=()=>{
  if(!refreshPvgisCoordinates())return;
  const lat=v('lat'),lon=v('lon');
- const url='https://re.jrc.ec.europa.eu/pvg_tools/en/?'+new URLSearchParams({lat:String(lat),lon:String(lon)}).toString();
+ const peakpower=Number(v('targetKwp'));
+ const tilt=Number(v('tilt'));
+ const faceAz=Number(v('faceAz'));
+ if(!Number.isFinite(peakpower)||peakpower<=0||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(faceAz)){ $('pvgisExternalStatus').textContent='Comprueba la potencia objetivo, la inclinación y el azimut antes de abrir PVGIS.';return; }
+ const aspect=((faceAz-180+540)%360)-180;
+ const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:String(peakpower),loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(tilt),aspect:String(aspect),outputformat:'json',browser:'0'});
+ const url='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
  window.open(url,'_blank','noopener');
 };
 ['lat','lon'].forEach(id=>$(id).addEventListener('input',refreshPvgisCoordinates));
@@ -305,7 +311,7 @@ $('gpsLocation').onclick=()=>{
  status.textContent='Solicitando permiso de ubicación al móvil…';
  navigator.geolocation.getCurrentPosition(async pos=>{
   $('lat').value=pos.coords.latitude.toFixed(6);$('lon').value=pos.coords.longitude.toFixed(6);$('place').value='Ubicación GPS del dispositivo';$('preset').value='manual';
-  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Las coordenadas ya están listas para abrir PVGIS.`;refreshPvgisCoordinates();
+  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Las coordenadas ya están listas para consultar PVGIS.`;refreshPvgisCoordinates();
  },err=>{const msgs={1:'Permiso de ubicación denegado.',2:'No se pudo determinar la ubicación.',3:'Se agotó el tiempo de espera.'};status.textContent=(msgs[err.code]||'Error de geolocalización')+' Puedes introducir las coordenadas manualmente.';},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 };
 
