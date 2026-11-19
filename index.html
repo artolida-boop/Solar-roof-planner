@@ -37,7 +37,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.2 · PVGIS desde Sol y sombras</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.3 · Potencia objetivo y distribución</div></div></header>
 <nav>
 <button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -52,7 +52,8 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="card"><h2>Panel fotovoltaico</h2><div class="grid">
 <label>Ancho del panel (m)<input id="pw" type="number" value="1.134" min="0.1" step="0.001"></label>
 <label>Largo del panel (m)<input id="ph" type="number" value="1.762" min="0.1" step="0.001"></label>
-<label>Potencia (Wp)<input id="wp" type="number" value="450" min="1" step="5"></label>
+<label>Potencia por panel (Wp)<input id="wp" type="number" value="450" min="1" step="5"></label>
+<label>Potencia objetivo de la instalación (kWp)<input id="targetKwp" type="number" value="5" min="0.1" step="0.1"></label>
 <label>Separación entre paneles en fila (cm)<input id="pg" type="number" value="2" min="0" step="0.5"></label>
 </div></div>
 <button class="primary" onclick="showTab('solar')">Continuar al estudio solar →</button>
@@ -99,6 +100,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </section>
 <section id="layout">
 <div class="card"><h2>Distribución automática en cubierta</h2>
+<p class="mutedbox">La distribución se ajustará a la potencia objetivo indicada en «Panel fotovoltaico». El programa calcula cuántos módulos hacen falta y los coloca en la cubierta. Como no se pueden instalar fracciones de panel, la potencia final puede superar ligeramente el objetivo.</p>
 <label>Separación libre entre filas (m)<input id="manual" type="number" value="0" min="0" step="0.01"></label>
 <label>Origen de la separación<select id="gapMode"><option value="auto">Usar cálculo solar</option><option value="manual">Usar valor manual</option></select></label>
 <button class="primary" id="pack">Generar distribución</button><div id="drawing"></div>
@@ -320,20 +322,27 @@ $('pack').onclick=()=>{
  if(usableW<=0||usableL<=0){$('drawing').innerHTML='<div class="warn">Los márgenes dejan una superficie útil nula o negativa.</div>';return}
  // Separación de paneles solo a lo largo de la fila; hueco solar solo entre filas.
  let cols=Math.max(0,Math.floor((usableW+pg)/(panelW+pg)));
- let rows=Math.max(0,Math.floor((usableL+gap)/Math.max(footprintDepth+gap,0.001)));
- let count=cols*rows;if(count===0){$('drawing').innerHTML='<div class="warn">Con estas dimensiones y separación no cabe ningún panel. Reduce márgenes o separación, o revisa el tamaño del módulo.</div>';layout=null;return;}layout={cols,rows,count,gap,panelW,footprintDepth};
+ let maxRows=Math.max(0,Math.floor((usableL+gap)/Math.max(footprintDepth+gap,0.001)));
+ const targetKwp=v('targetKwp');
+ if(!Number.isFinite(targetKwp)||targetKwp<=0){$('drawing').innerHTML='<div class="warn">Introduce una potencia objetivo válida, superior a cero kWp.</div>';layout=null;return;}
+ const desiredCount=Math.ceil(targetKwp*1000/wp);
+ const maxCount=cols*maxRows;
+ if(cols===0||maxRows===0||maxCount===0){$('drawing').innerHTML='<div class="warn">Con estas dimensiones y separación no cabe ningún panel. Reduce márgenes o separación, o revisa el tamaño del módulo.</div>';layout=null;return;}
+ const count=Math.min(desiredCount,maxCount),rows=Math.ceil(count/cols),actualKwp=count*wp/1000;
+ layout={cols,rows,count,gap,panelW,footprintDepth,targetKwp,desiredCount,maxRows,maxCount,actualKwp};
  let svgW=360,svgH=Math.max(140,Math.min(300,svgW*rl/Math.max(rw,.1))),sx=(svgW-20)/rw,sy=(svgH-20)/rl;
- let rects='';for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)rects+=`<rect x="${10+(mx+c*(panelW+pg))*sx}" y="${10+(my+r*(footprintDepth+gap))*sy}" width="${panelW*sx*.96}" height="${footprintDepth*sy*.96}" rx="2" fill="#287fa0" stroke="#14516b"/>`;
- $('drawing').innerHTML=`<p><b>${count} paneles</b> · ${cols} paneles por fila × ${rows} filas · separación libre ${gap.toFixed(2)} m · paso entre filas ${(footprintDepth+gap).toFixed(2)} m</p><svg class="plan" viewBox="0 0 360 ${svgH}" role="img" aria-label="Plano esquemático de distribución"><rect x="10" y="10" width="${rw*sx}" height="${rl*sy}" fill="none" stroke="currentColor" stroke-width="1.5"/>${rects}</svg><small>Plano esquemático en planta. El largo del panel se proyecta horizontalmente con la inclinación introducida.</small>`;
- $('nPanels').textContent=count;$('kwp').textContent=(count*v('wp')/1000).toFixed(2)+' kWp';$('area').textContent=(count*v('pw')*v('ph')).toFixed(1)+' m²';$('rows').textContent=rows;
- $('details').innerHTML=`<p>Cubierta: ${rw.toFixed(2)} × ${rl.toFixed(2)} m. Panel: ${v('pw').toFixed(3)} × ${v('ph').toFixed(3)} m, ${v('wp')} Wp.</p><p>Separación libre entre filas: ${gap.toFixed(2)} m. Paso de filas: ${(footprintDepth+gap).toFixed(2)} m.</p><p>Ubicación: ${safeText($('place').value)} (${v('lat').toFixed(5)}°, ${v('lon').toFixed(5)}°). Inclinación: ${tilt}°; azimut cara: ${norm(v('faceAz'))}°; eje filas: ${norm(v('rowAz'))}°.</p>`;
+ let rects='';for(let i=0;i<count;i++){const r=Math.floor(i/cols),c=i%cols;rects+=`<rect x="${10+(mx+c*(panelW+pg))*sx}" y="${10+(my+r*(footprintDepth+gap))*sy}" width="${panelW*sx*.96}" height="${footprintDepth*sy*.96}" rx="2" fill="#287fa0" stroke="#14516b"/>`;}
+ const capacityWarning=desiredCount>maxCount?`<div class="warn">La cubierta no admite los ${desiredCount} paneles necesarios para alcanzar ${targetKwp.toFixed(2)} kWp. Caben como máximo ${maxCount} paneles (${(maxCount*wp/1000).toFixed(2)} kWp). Se muestra la distribución máxima posible.</div>`:'';
+ $('drawing').innerHTML=`<div class="stats"><div class="stat"><div class="num">${targetKwp.toFixed(2)} kWp</div><small>Potencia objetivo</small></div><div class="stat"><div class="num">${actualKwp.toFixed(2)} kWp</div><small>Potencia resultante</small></div><div class="stat"><div class="num">${count}</div><small>Paneles necesarios</small></div></div>${capacityWarning}<p><b>${count} paneles</b> · ${cols} posiciones por fila como máximo × ${rows} filas (última fila parcial si procede) · separación libre ${gap.toFixed(2)} m · paso entre filas ${(footprintDepth+gap).toFixed(2)} m</p><svg class="plan" viewBox="0 0 360 ${svgH}" role="img" aria-label="Plano esquemático de distribución"><rect x="10" y="10" width="${rw*sx}" height="${rl*sy}" fill="none" stroke="currentColor" stroke-width="1.5"/>${rects}</svg><small>Plano esquemático en planta. La última fila puede quedar incompleta para ajustarse a la potencia solicitada. La potencia real se redondea al número entero de paneles.</small>`;
+ $('nPanels').textContent=count;$('kwp').textContent=actualKwp.toFixed(2)+' kWp';$('area').textContent=(count*v('pw')*v('ph')).toFixed(1)+' m²';$('rows').textContent=rows;
+ $('details').innerHTML=`<p>Potencia objetivo: ${targetKwp.toFixed(2)} kWp. Potencia instalada calculada: ${actualKwp.toFixed(2)} kWp (${count} paneles de ${wp} Wp). ${desiredCount>maxCount?'No se alcanza el objetivo por falta de superficie útil.':'Objetivo cubierto con el número entero de paneles indicado.'}</p><p>Cubierta: ${rw.toFixed(2)} × ${rl.toFixed(2)} m. Panel: ${v('pw').toFixed(3)} × ${v('ph').toFixed(3)} m, ${wp} Wp.</p><p>Distribución: ${cols} paneles por fila como máximo, ${rows} filas. Separación libre entre filas: ${gap.toFixed(2)} m. Paso de filas: ${(footprintDepth+gap).toFixed(2)} m.</p><p>Ubicación: ${safeText($('place').value)} (${v('lat').toFixed(5)}°, ${v('lon').toFixed(5)}°). Inclinación: ${tilt}°; azimut cara: ${norm(v('faceAz'))}°; eje filas: ${norm(v('rowAz'))}°.</p>`;
 };
 function csvCell(value){const s=String(value??'');return /[\",\n\r]/.test(s)?'\"'+s.replace(/\"/g,'\"\"')+'\"':s;}
 $('csv').onclick=()=>{
  if(!lastSolar&&!layout){alert('Calcula las sombras o genera primero la distribución.');return}
  let lines=['Tipo,Mes,Separacion_sin_sombra_m,Separacion_elegida_m,Sombra_peor_caso_pct,Hora_critica,Altura_solar_deg,Azimut_solar_deg'];
  if(lastSolar)lastSolar.rows.forEach(r=>{const s=r.maxNoShade.sun;lines.push(['Solar',months[r.m],r.samples.length?r.maxNoShade.gap.toFixed(3):'',lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),s?s.altitude.toFixed(2):'',s?s.azimuth.toFixed(2):''].map(csvCell).join(','));});
- if(layout)lines.push(['Distribucion','', '',layout.gap.toFixed(3),'','','',''].join(','),`Paneles,${layout.count}` ,`Filas,${layout.rows}`,`Columnas,${layout.cols}`,`Potencia_kWp,${(layout.count*v('wp')/1000).toFixed(2)}`);
+ if(layout)lines.push(['Distribucion','', '',layout.gap.toFixed(3),'','','',''].join(','),`Potencia_objetivo_kWp,${layout.targetKwp.toFixed(2)}`,`Paneles,${layout.count}`,`Filas,${layout.rows}`,`Columnas_maximas_por_fila,${layout.cols}`,`Potencia_instalada_kWp,${layout.actualKwp.toFixed(2)}`);
  const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-sombras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 
@@ -346,7 +355,7 @@ $('excel').onclick=()=>{
   lastSolar.rows.forEach(r=>{const sun=r.maxNoShade.sun;rows.push([months[r.m],r.samples.length?r.maxNoShade.gap.toFixed(3):'',lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),sun?sun.altitude.toFixed(2):'',sun?sun.azimuth.toFixed(2):'']);});
   sheets.push({name:'Sombras',rows});
  }
- if(layout){sheets.push({name:'Distribucion',rows:[['Dato','Valor'],['Paneles',layout.count],['Filas',layout.rows],['Paneles por fila',layout.cols],['Separación entre filas (m)',layout.gap.toFixed(3)],['Potencia total (kWp)',(layout.count*v('wp')/1000).toFixed(2)],['Ancho de cubierta (m)',v('rw')],['Largo de cubierta (m)',v('rl')]]});}
+ if(layout){sheets.push({name:'Distribucion',rows:[['Dato','Valor'],['Potencia objetivo (kWp)',layout.targetKwp.toFixed(2)],['Paneles',layout.count],['Filas',layout.rows],['Máximo paneles por fila',layout.cols],['Separación entre filas (m)',layout.gap.toFixed(3)],['Potencia instalada (kWp)',layout.actualKwp.toFixed(2)],['Ancho de cubierta (m)',v('rw')],['Largo de cubierta (m)',v('rl')]]});}
  const sheetXml=sheets.map(sh=>`<Worksheet ss:Name="${xmlEscape(sh.name)}"><Table>${sh.rows.map((row,i)=>`<Row>${row.map(cell=>{const numeric=cell!==''&&Number.isFinite(Number(cell));return `<Cell><Data ss:Type="${numeric?'Number':'String'}">${xmlEscape(cell)}</Data></Cell>`;}).join('')}</Row>`).join('')}</Table></Worksheet>`).join('');
  const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Title>Solar Roof Planner</Title></DocumentProperties>${sheetXml}</Workbook>`;
  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-resultados.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -416,7 +425,7 @@ $('trackerCsv').onclick=()=>{if(!trackerRows.length)return;const head=['Hora','H
 // Invalidar resultados antiguos cuando se modifican datos de entrada.
 const solarInputs=['lat','lon','tz','faceAz','rowAz','tilt','year','period','month','timeMode','start','end','interval','mode','shadeTolerance','dst','pw','ph'];
 solarInputs.forEach(id=>$(id).addEventListener('change',()=>{lastSolar=null;layout=null;window.solarGap=undefined;}));
-const layoutInputs=['rw','rl','mx','my','orient','pw','ph','wp','pg','manual','gapMode'];
+const layoutInputs=['rw','rl','mx','my','orient','pw','ph','wp','targetKwp','pg','manual','gapMode'];
 layoutInputs.forEach(id=>$(id).addEventListener('change',()=>{layout=null;}));
 $('calc').onclick=()=>{layout=null;calcSolar();};
 
