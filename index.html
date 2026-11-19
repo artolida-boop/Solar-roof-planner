@@ -33,12 +33,13 @@ canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;dis
 svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;display:block}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media print{nav,button,.notice{display:none!important}body{max-width:none;padding:0}section{display:block!important}.card{break-inside:avoid}}
+#tracker, nav button[data-tab="tracker"]{display:none!important}
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.4.1 · seguidor solar con backtracking</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5 · consulta externa PVGIS</div></div></header>
 <nav>
-<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="tracker">Seguidor solar</button><button data-tab="results">Resultados</button>
+<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="pvgis">PVGIS</button><button data-tab="results">Resultados</button>
 </nav>
 <section id="roof" class="active">
 <div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
@@ -100,6 +101,15 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="mutedbox">La separación solar se aplica entre filas, no entre paneles de una misma fila. La distribución es aproximada y presupone que las filas siguen el lado largo del rectángulo.</div>
 </div>
 </section>
+<section id="pvgis">
+<div class="card"><h2>Consulta oficial en PVGIS</h2>
+<p>La consulta utilizará las coordenadas de la ubicación configurada en la pestaña «Sol y sombras». No tendrás que copiarlas ni escribirlas de nuevo.</p>
+<div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
+<div class="inline"><button type="button" class="primary" id="openPvgis">Abrir consulta PVGIS con estas coordenadas</button><button type="button" id="refreshPvgisCoords">Actualizar coordenadas</button></div>
+<div id="pvgisExternalStatus" class="notice" aria-live="polite">Primero configura la ubicación en «Sol y sombras». Puedes introducir coordenadas o utilizar el GPS del móvil.</div>
+<p class="mutedbox">Se abrirá el servicio oficial PVGIS de la Comisión Europea en otra pestaña con latitud y longitud incorporadas. La consulta se realizará en PVGIS; Solar Roof Planner no necesita interpretar su respuesta.</p>
+<p><a href="https://re.jrc.ec.europa.eu/pvg_tools/en/" target="_blank" rel="noopener">Abrir página principal de PVGIS</a></p>
+</div></section>
 <section id="tracker">
 <div class="card"><h2>Simulador de seguidor solar de un eje</h2>
 <p class="mutedbox">Calcula el giro geométrico que debe realizar un seguidor de un eje horizontal para orientar el módulo hacia el Sol. Utiliza las coordenadas y el huso horario de la pestaña «Sol y sombras».</p>
@@ -334,6 +344,21 @@ async function pvgisOptimal(){
 $('pvgisOptimal').onclick=pvgisOptimal;
 
 $('pvgisLookup').onclick=queryPVGIS;
+function refreshPvgisCoordinates(){
+ const lat=v('lat'),lon=v('lon'),latOut=$('pvgisLat'),lonOut=$('pvgisLon'),status=$('pvgisExternalStatus');
+ if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud y longitud válidas en «Sol y sombras».';return false;}
+ latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Al abrir PVGIS se enviarán automáticamente.';return true;
+}
+$('refreshPvgisCoords').onclick=refreshPvgisCoordinates;
+$('openPvgis').onclick=()=>{
+ if(!refreshPvgisCoordinates())return;
+ const lat=v('lat'),lon=v('lon');
+ const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(v('tilt')||30),aspect:String(((norm(v('faceAz')||180)-180+540)%360)-180),outputformat:'browser'});
+ const url='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
+ window.open(url,'_blank','noopener');
+};
+['lat','lon'].forEach(id=>$(id).addEventListener('input',refreshPvgisCoordinates));
+refreshPvgisCoordinates();
 $('gpsLocation').onclick=()=>{
  const status=$('pvgisStatus');
  if(!navigator.geolocation){status.textContent='Este navegador no ofrece geolocalización.';return;}
