@@ -1,4 +1,4 @@
-SOLAR ROOF PLANNER — PAQUETE 3.5.1 — PVGIS EXTERNO
+SOLAR ROOF PLANNER — PAQUETE 3.5.2 — PVGIS EXTERNO
 
 Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - index.html
@@ -7,7 +7,7 @@ Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - icon.svg
 
 CAMBIOS DE ESTA ENTREGA
-- Se corrige la identificación de versión: esta entrega es 3.5.1.
+- Se corrige la identificación de versión: esta entrega es 3.5.2.
 - Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
 - Se añade backtracking geométrico al simulador diario del seguidor solar de un eje horizontal.
 - Se corrige la fórmula de backtracking: la corrección angular se resta del ángulo ideal conforme al método NREL/pvlib para eje horizontal y terreno plano.
@@ -31,7 +31,7 @@ LIMITACIONES IMPORTANTES
 Esta entrega NO es la versión 4.0 ni incorpora todavía simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
 
 PUBLICACIÓN
-Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.5.1. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.5.2.2. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
 
 SEGUIDOR SOLAR — NOTA DE USO
 El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El backtracking es una aproximación geométrica para filas paralelas sobre terreno horizontal. No incorpora control por viento, terreno irregular, obstáculos ni validación estructural o mecánica.
@@ -45,4 +45,7 @@ BACKTRACKING — DATOS DE ENTRADA
 - La separación debe introducirse en metros y representar la geometría real de las mesas; valores incorrectos producen resultados incorrectos.
 
 
-CAMBIO 3.5.1: la pestaña PVGIS externa abre PVcalc con las coordenadas del proyecto. Se corrige outputformat para usar JSON (valor admitido por PVGIS) y browser=0; no se usa "browser" como formato de salida.
+CAMBIO 3.5.2: la pestaña PVGIS externa abre PVcalc con las coordenadas del proyecto. Se corrige outputformat para usar JSON (valor admitido por PVGIS) y browser=0; no se usa "browser" como formato de salida.
+
+
+Versión 3.5.2: se elimina la pestaña independiente PVGIS. La apertura de PVGIS y la visualización de coordenadas quedan dentro de «Sol y sombras». El botón abre la herramienta oficial de PVGIS en otra pestaña e incorpora latitud y longitud en la URL.

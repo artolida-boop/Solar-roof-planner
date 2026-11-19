@@ -37,9 +37,9 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.1 · consulta externa PVGIS</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.2 · PVGIS desde Sol y sombras</div></div></header>
 <nav>
-<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="pvgis">PVGIS</button><button data-tab="results">Resultados</button>
+<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
 <section id="roof" class="active">
 <div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
@@ -65,11 +65,15 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <label>Longitud (°; este + / oeste −)<input id="lon" type="number" value="-0.48123" min="-180" max="180" step="0.00001"></label>
 <label>Huso horario estándar UTC<input id="tz" type="number" value="1" min="-12" max="14" step="0.5"></label>
 </div>
-<div class="inline"><button type="button" id="gpsLocation">Usar ubicación del móvil</button><button type="button" id="pvgisLookup">Consultar PVGIS para estas coordenadas</button></div>
-<div id="pvgisStatus" class="notice" aria-live="polite">Ubicación de referencia cargada. Puedes usar el GPS del móvil o introducir coordenadas y consultar PVGIS para sus datos topográficos y horizonte.</div>
-<div class="mutedbox">PVGIS no es un geocodificador de direcciones: necesita latitud y longitud. El GPS del móvil puede proporcionar las coordenadas de la parcela; después se consulta PVGIS para obtener altitud y perfil de horizonte. El horizonte de terreno es información complementaria y no sustituye el cálculo de sombras entre filas.</div>
-<div class="inline"><label>Tipo de montaje PVGIS<select id="pvgisMount"><option value="free">Estructura libre (free-standing)</option><option value="building">Integrado en edificio</option></select></label><button type="button" id="pvgisOptimal">Calcular inclinación óptima PVGIS</button></div>
-<div id="pvgisOptimalOut" class="notice" aria-live="polite">PVGIS puede calcular la inclinación anual óptima manteniendo el azimut actual, y también la combinación óptima de inclinación y orientación.</div>
+<div class="inline"><button type="button" id="gpsLocation">Usar ubicación del móvil</button></div>
+<div id="locationStatus" class="notice" aria-live="polite">Ubicación de referencia cargada. Puedes usar el GPS del móvil o introducir las coordenadas manualmente.</div>
+<div class="mutedbox">PVGIS necesita latitud y longitud. Puedes obtenerlas con el GPS del móvil o introducirlas manualmente. El cálculo de sombras entre filas de Solar Roof Planner se realiza de forma independiente.</div>
+<div class="card" style="margin-top:12px"><h3>Abrir PVGIS con estas coordenadas</h3>
+<p>Se abrirá la herramienta oficial de PVGIS en una pestaña nueva. Las coordenadas de esta ubicación se añadirán automáticamente al enlace.</p>
+<div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
+<div class="inline"><button type="button" class="primary" id="openPvgis">Abrir PVGIS en otra pestaña</button></div>
+<div id="pvgisExternalStatus" class="notice" aria-live="polite">Las coordenadas se actualizarán automáticamente al cambiar la ubicación.</div>
+</div>
 <label class="inline"><input id="dst" type="checkbox" checked> Aplicar horario de verano europeo automáticamente al usar hora civil</label>
 </div>
 <div class="card"><h2>Geometría de módulos y filas</h2><div class="grid">
@@ -101,15 +105,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="mutedbox">La separación solar se aplica entre filas, no entre paneles de una misma fila. La distribución es aproximada y presupone que las filas siguen el lado largo del rectángulo.</div>
 </div>
 </section>
-<section id="pvgis">
-<div class="card"><h2>Consulta oficial en PVGIS</h2>
-<p>La consulta utilizará las coordenadas de la ubicación configurada en la pestaña «Sol y sombras». No tendrás que copiarlas ni escribirlas de nuevo.</p>
-<div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
-<div class="inline"><button type="button" class="primary" id="openPvgis">Abrir consulta PVGIS con estas coordenadas</button><button type="button" id="refreshPvgisCoords">Actualizar coordenadas</button></div>
-<div id="pvgisExternalStatus" class="notice" aria-live="polite">Primero configura la ubicación en «Sol y sombras». Puedes introducir coordenadas o utilizar el GPS del móvil.</div>
-<p class="mutedbox">Se abrirá el servicio oficial PVGIS de la Comisión Europea en otra pestaña con latitud y longitud incorporadas. La consulta se realizará en PVGIS; Solar Roof Planner no necesita interpretar su respuesta.</p>
-<p><a href="https://re.jrc.ec.europa.eu/pvg_tools/en/" target="_blank" rel="noopener">Abrir página principal de PVGIS</a></p>
-</div></section>
+
 <section id="tracker">
 <div class="card"><h2>Simulador de seguidor solar de un eje</h2>
 <p class="mutedbox">Calcula el giro geométrico que debe realizar un seguidor de un eje horizontal para orientar el módulo hacia el Sol. Utiliza las coordenadas y el huso horario de la pestaña «Sol y sombras».</p>
@@ -146,7 +142,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 'use strict';
 const $=id=>document.getElementById(id);
 const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-let monthly=[],layout=null,lastSolar=null,pvgisData=null;
+let monthly=[],layout=null,lastSolar=null;
 const rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
 const v=id=>{const raw=$(id).value.trim();return raw===''?NaN:Number(raw)};
 const norm=a=>((a%360)+360)%360;
@@ -280,7 +276,7 @@ function calcSolar(){
  const tableRows=monthly.map(r=>`<tr><td>${months[r.m]}</td><td>${r.maxNoShade.gap.toFixed(2)}</td><td>${gap.toFixed(2)}</td><td>${(r.chosenShade*100).toFixed(1)} %</td><td>${timeLabel(r.maxNoShade,$('timeMode').value)}</td><td>${r.maxNoShade.sun?r.maxNoShade.sun.altitude.toFixed(1)+'°':'—'}</td><td>${r.maxNoShade.sun?r.maxNoShade.sun.azimuth.toFixed(1)+'°':'—'}</td></tr>`).join('');
  const mismatch=axisError>5?`<div class="warn">El eje de filas no es perpendicular al azimut de la cara (desviación ${axisError.toFixed(1)}°). El cálculo 2D puede dejar de representar la geometría real. Ajusta el eje o interpreta el resultado solo como orientación aproximada.</div>`:'';
  const compactInfo=compact?`La separación compacta se obtiene resolviendo la fracción sombreada máxima admisible; no es un porcentaje arbitrario de la separación sin sombras. Sombra máxima calculada: <b>${(worstShade.fraction*100).toFixed(1)} %</b>.`:'La separación se fija con el peor caso de todas las fechas y horas seleccionadas.';
- const pvgisInfo=pvgisData&&Math.abs(pvgisData.lat-lat)<1e-6&&Math.abs(pvgisData.lon-lon)<1e-6?' PVGIS se ha consultado para estas coordenadas; el perfil de horizonte se muestra como dato topográfico y no se aplica automáticamente al modelo 2D entre filas.':' PVGIS no se ha consultado para estas coordenadas; la separación se calcula con geometría solar local.';
+ const pvgisInfo=' PVGIS se abre de forma independiente en otra pestaña; este cálculo de sombras utiliza la geometría solar local.';
  const tzInfo=$('timeMode').value==='civil'?`Las horas de entrada son oficiales locales. Se convierten a hora solar verdadera con longitud ${lon.toFixed(5)}°, ecuación del tiempo y UTC${tz>=0?'+':''}${tz}${$('dst').checked?' (horario de verano automático)':''}.`:'Las horas introducidas ya son hora solar verdadera; la longitud no interviene en la posición solar y se conserva para conversión si se cambia a hora civil.';
  $('solarOut').innerHTML=`<div class="good"><b>Separación libre recomendada: ${gap.toFixed(2)} m</b><br>${safeText(modeText)}.<br>Paso entre filas (proyección horizontal): ${pitch.toFixed(2)} m · huella horizontal del módulo: ${footprint.toFixed(2)} m.</div>${mismatch}<div class="stats"><div class="stat"><div class="num">${gap.toFixed(2)} m</div><small>Separación libre elegida</small></div><div class="stat"><div class="num">${worstNo.maxNoShade.gap.toFixed(2)} m</div><small>Separación para 0 % de sombra</small></div><div class="stat"><div class="num">${(worstShade.fraction*100).toFixed(1)} %</div><small>Peor sombra con separación elegida</small></div><div class="stat"><div class="num">${rowNormal.toFixed(0)}°</div><small>Dirección hacia la fila siguiente</small></div></div><p><b>Mes crítico sin sombras:</b> ${months[worstNo.m]}, a las ${critTime} (${solarTime} hora solar; ${localTime} hora de entrada). Altura solar ${crit.sun?crit.sun.altitude.toFixed(1)+'°':'—'} y azimut solar ${crit.sun?crit.sun.azimuth.toFixed(1)+'°':'—'}.</p><p class="mutedbox">${compactInfo} ${tzInfo}${pvgisInfo} Se ha muestreado cada ${step} minutos, incluyendo los extremos del horario.</p><h3>Comparación mensual</h3><canvas id="monthChart" width="760" height="250" aria-label="Comparación de separación mensual sin sombras y separación elegida"></canvas><div class="table-wrap"><table><thead><tr><th>Mes</th><th>0 % sombra (m)</th><th>Elegida (m)</th><th>Sombra peor caso</th><th>Hora crítica</th><th>Altura solar</th><th>Azimut solar</th></tr></thead><tbody>${tableRows}</tbody></table></div><p class="mutedbox">La altura y el azimut de la tabla corresponden al instante de mayor separación requerida para eliminar sombras en ese mes. El azimut solar se mide desde el norte geográfico, en sentido horario.</p>`;
  drawChart(monthly,gap);updateRowGeometry();return gap;
@@ -288,88 +284,30 @@ function calcSolar(){
 $('calc').onclick=calcSolar;
 $('mode').onchange=()=>{$('toleranceWrap').classList.toggle('hidden',$('mode').value!=='compact')};
 $('timeMode').onchange=()=>{$('timeHelp').textContent=$('timeMode').value==='solar'?'Se analizarán las horas solares verdaderas indicadas. En este modo la longitud no cambia la posición solar; se utiliza si eliges hora oficial local.':'Se analizarán las horas oficiales locales indicadas. Se convertirán a hora solar usando longitud, ecuación del tiempo y huso horario; el horario de verano europeo puede aplicarse automáticamente.'};
-async function queryPVGIS(){
- const lat=v('lat'),lon=v('lon'),status=$('pvgisStatus');
- if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){status.innerHTML='<b>Coordenadas no válidas.</b> Introduce latitud entre −90 y 90 y longitud entre −180 y 180.';return;}
- status.textContent='Consultando el servicio oficial PVGIS del Centro Común de Investigación de la Comisión Europea…';
- const url=`https://re.jrc.ec.europa.eu/api/v5_3/printhorizon?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&outputformat=json`;
- try{
-  const response=await fetch(url,{headers:{Accept:'application/json'}});
-  if(!response.ok)throw new Error(`PVGIS respondió HTTP ${response.status}`);
-  const data=await response.json();
-  const profile=data?.outputs?.horizon_profile??data?.horizon_profile??data?.outputs?.['Horizon profile']??null;
-  const elevation=data?.inputs?.location?.elevation??data?.outputs?.elevation??data?.elevation??null;
-  let minH=null,maxH=null;
-  if(Array.isArray(profile)&&profile.length){const vals=profile.map(x=>Array.isArray(x)?Number(x[1]):Number(x)).filter(Number.isFinite);if(vals.length){minH=Math.min(...vals);maxH=Math.max(...vals);}}
-  pvgisData={lat,lon,elevation,profile,minH,maxH,queriedAt:new Date().toISOString(),raw:data};
-  const elevTxt=Number.isFinite(Number(elevation))?`${Number(elevation).toFixed(0)} m sobre el nivel del mar`:'altitud no devuelta por este endpoint';
-  const horizonTxt=minH!==null?`Perfil de horizonte recibido (${profile.length} direcciones; altura ${minH.toFixed(1)}°–${maxH.toFixed(1)}°).`:'PVGIS respondió, pero no se pudo interpretar el perfil de horizonte en el formato recibido.';
-  status.innerHTML=`<b>PVGIS consultado correctamente.</b><br>Coordenadas: ${lat.toFixed(5)}°, ${lon.toFixed(5)}° · Altitud: ${elevTxt}.<br>${safeText(horizonTxt)}<br><small>Fuente: JRC-PVGIS 5.3 · ${new Date().toLocaleString('es-ES')}</small>`;
- }catch(err){pvgisData=null;status.innerHTML=`<b>No se pudo consultar PVGIS.</b><br>${safeText(err.message)}. Comprueba la conexión y vuelve a intentarlo. Las coordenadas siguen disponibles para el cálculo geométrico local.`;}
-}
-
-function pvgisFixedValue(obj,kind){
- const value=obj?.inputs?.mounting_system?.fixed?.[kind]?.value;
- return value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))?Number(value):null;
-}
-
-async function pvgisOptimal(){
- const lat=v('lat'),lon=v('lon'),out=$('pvgisOptimalOut');
- if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){out.textContent='Introduce coordenadas válidas antes de solicitar el óptimo.';return;}
- const aspect=((norm(v('faceAz'))-180+540)%360)-180;
- const mount=$('pvgisMount').value;
- out.textContent='Solicitando a PVGIS la inclinación óptima anual y la orientación/inclinación óptimas…';
- const makeUrl=(extra)=>{
-  const q=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:mount,outputformat:'json',...extra});
-  return `https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?${q.toString()}`;
- };
- try{
-  const [tiltResp,bothResp]=await Promise.all([
-   fetch(makeUrl({optimalinclination:'1',aspect:String(aspect)}),{headers:{Accept:'application/json'}}),
-   fetch(makeUrl({optimalangles:'1'}),{headers:{Accept:'application/json'}})
-  ]);
-  if(!tiltResp.ok||!bothResp.ok)throw new Error(`PVGIS respondió HTTP ${!tiltResp.ok?tiltResp.status:bothResp.status}`);
-  const [tiltData,bothData]=await Promise.all([tiltResp.json(),bothResp.json()]);
-  const tilt=pvgisFixedValue(tiltData,'slope');
-  const bothTilt=pvgisFixedValue(bothData,'slope');
-  const aspectPV=pvgisFixedValue(bothData,'azimuth');
-  if(tilt===null&&bothTilt===null)throw new Error('PVGIS respondió, pero no se identificaron los campos de inclinación óptima en el JSON.');
-  const compass=aspectPV===null?null:((180+aspectPV)%360+360)%360;
-  const fmt=x=>x===null?'No devuelto':`${x.toFixed(1)}°`;
-  out.innerHTML=`<b>Resultados oficiales PVGIS 5.3 · ${lat.toFixed(5)}°, ${lon.toFixed(5)}°</b><div class="stats"><div class="stat"><div class="num">${fmt(tilt)}</div><small>Inclinación óptima anual, conservando el azimut actual (${norm(v('faceAz')).toFixed(0)}°)</small></div><div class="stat"><div class="num">${fmt(bothTilt)}</div><small>Inclinación óptima conjunta</small></div><div class="stat"><div class="num">${fmt(aspectPV)}</div><small>Azimut PVGIS óptimo (0° sur, +90° oeste, −90° este)</small></div><div class="stat"><div class="num">${fmt(compass)}</div><small>Orientación equivalente desde norte geográfico</small></div></div><p>Montaje: ${mount==='free'?'estructura libre':'integrado en edificio'}. PVGIS optimiza la producción anual con datos meteorológicos de su base de radiación; el cálculo de sombras entre filas sigue siendo independiente.</p><div class="inline"><button type="button" id="applyPvgisTilt" ${tilt===null?'disabled':''}>Aplicar inclinación óptima</button><button type="button" id="applyPvgisBoth" ${bothTilt===null?'disabled':''}>Aplicar inclinación y orientación óptimas</button></div><small>Fuente: Comisión Europea, JRC-PVGIS 5.3 · PVcalc. Supuesto de cálculo: 1 kWp y pérdidas del 14 %; estos valores auxiliares no alteran la búsqueda geométrica de ángulos óptimos.</small>`;
-  if(tilt!==null)$('applyPvgisTilt').onclick=()=>{$('tilt').value=tilt.toFixed(1);calcSolar();};
-  if(bothTilt!==null)$('applyPvgisBoth').onclick=()=>{$('tilt').value=bothTilt.toFixed(1);if(compass!==null)$('faceAz').value=compass.toFixed(1);updateRowGeometry();calcSolar();};
- }catch(err){out.innerHTML=`<b>No se pudo obtener el óptimo de PVGIS.</b><br>${safeText(err.message)}. Revisa conexión, coordenadas y disponibilidad del servicio. No se sustituye por una estimación local inventada.`;}
-}
-$('pvgisOptimal').onclick=pvgisOptimal;
-
-$('pvgisLookup').onclick=queryPVGIS;
 function refreshPvgisCoordinates(){
  const lat=v('lat'),lon=v('lon'),latOut=$('pvgisLat'),lonOut=$('pvgisLon'),status=$('pvgisExternalStatus');
- if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud y longitud válidas en «Sol y sombras».';return false;}
- latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Al abrir PVGIS se enviarán automáticamente.';return true;
+ if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud válida (−90 a 90) y una longitud válida (−180 a 180).';return false;}
+ latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Se incorporarán al abrir la herramienta oficial de PVGIS.';return true;
 }
-$('refreshPvgisCoords').onclick=refreshPvgisCoordinates;
 $('openPvgis').onclick=()=>{
  if(!refreshPvgisCoordinates())return;
  const lat=v('lat'),lon=v('lon');
- const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(v('tilt')||30),aspect:String(((norm(v('faceAz')||180)-180+540)%360)-180),outputformat:'json',browser:'0'});
- const url='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
+ const url='https://re.jrc.ec.europa.eu/pvg_tools/en/?'+new URLSearchParams({lat:String(lat),lon:String(lon)}).toString();
  window.open(url,'_blank','noopener');
 };
 ['lat','lon'].forEach(id=>$(id).addEventListener('input',refreshPvgisCoordinates));
 refreshPvgisCoordinates();
 $('gpsLocation').onclick=()=>{
- const status=$('pvgisStatus');
+ const status=$('locationStatus');
  if(!navigator.geolocation){status.textContent='Este navegador no ofrece geolocalización.';return;}
  status.textContent='Solicitando permiso de ubicación al móvil…';
  navigator.geolocation.getCurrentPosition(async pos=>{
   $('lat').value=pos.coords.latitude.toFixed(6);$('lon').value=pos.coords.longitude.toFixed(6);$('place').value='Ubicación GPS del dispositivo';$('preset').value='manual';
-  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Consultando PVGIS…`;await queryPVGIS();
+  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Las coordenadas ya están listas para abrir PVGIS.`;refreshPvgisCoordinates();
  },err=>{const msgs={1:'Permiso de ubicación denegado.',2:'No se pudo determinar la ubicación.',3:'Se agotó el tiempo de espera.'};status.textContent=(msgs[err.code]||'Error de geolocalización')+' Puedes introducir las coordenadas manualmente.';},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 };
 
-$('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123'}};
+$('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123';refreshPvgisCoordinates();}};
 ['faceAz','rowAz'].forEach(id=>$(id).addEventListener('input',updateRowGeometry));
 $('pack').onclick=()=>{
  let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();
