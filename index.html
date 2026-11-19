@@ -37,11 +37,11 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.4 · PVGIS con coordenadas</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.6 · Coplanar y estructura · PVGIS</div></div></header>
 <nav>
-<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
+<button class="active" data-tab="solar">Sol y sombras</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
-<section id="roof" class="active">
+<section id="roof">
 <div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
 <label>Ancho de cubierta (m)<input id="rw" type="number" value="10" min="0.1" step="0.1"></label>
 <label>Largo de cubierta (m)<input id="rl" type="number" value="8" min="0.1" step="0.1"></label>
@@ -58,7 +58,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </div></div>
 <button class="primary" onclick="showTab('solar')">Continuar al estudio solar →</button>
 </section>
-<section id="solar">
+<section id="solar" class="active">
 <div class="card"><h2>Ubicación</h2><div class="grid">
 <label>Referencia<select id="preset"><option value="alicante">Alicante · estación IGN ALAC</option><option value="manual">Coordenadas manuales</option></select></label>
 <label>Localidad / referencia<input id="place" value="Alicante (referencia IGN ALAC)"></label>
@@ -72,7 +72,8 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="card" style="margin-top:12px"><h3>Consultar PVGIS con estas coordenadas</h3>
 <p>Abre directamente el cálculo oficial de PVGIS con la ubicación, potencia objetivo, inclinación y orientación de este proyecto. Se mostrarán los resultados en formato JSON.</p>
 <div class="stats"><div class="stat"><div class="num" id="pvgisLat">—</div><small>Latitud (°)</small></div><div class="stat"><div class="num" id="pvgisLon">—</div><small>Longitud (°)</small></div></div>
-<div class="inline"><button type="button" class="primary" id="openPvgis">Consultar PVGIS con estas coordenadas</button></div>
+<div class="inline"><a id="openPvgis" href="https://re.jrc.ec.europa.eu/pvg_tools/en/tools.html#PVP" target="_blank" rel="noopener" style="color:#1677d2;text-decoration:underline;font-weight:700">Abrir cálculo PVGIS con estas coordenadas</a></div>
+<p><a href="https://re.jrc.ec.europa.eu/pvg_tools/en/tools.html#PVP" target="_blank" rel="noopener" style="color:#1677d2;text-decoration:underline">Abrir PVGIS interactivo (mapa y herramientas)</a></p>
 <div id="pvgisExternalStatus" class="notice" aria-live="polite">Las coordenadas se actualizarán automáticamente al cambiar la ubicación.</div>
 </div>
 <label class="inline"><input id="dst" type="checkbox" checked> Aplicar horario de verano europeo automáticamente al usar hora civil</label>
@@ -80,8 +81,11 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="card"><h2>Geometría de módulos y filas</h2><div class="grid">
 <label>Azimut de la cara del módulo (°)<input id="faceAz" type="number" value="180" min="0" max="359.99" step="1"></label>
 <label>Azimut del eje de las filas (°)<input id="rowAz" type="number" value="90" min="0" max="359.99" step="1"></label>
-<label>Inclinación del módulo (°)<input id="tilt" type="number" value="30" min="0" max="90" step="1"></label>
-</div><div id="rowGeometry" class="mutedbox">Azimut medido desde el norte geográfico, en sentido horario. El eje de filas debería ser perpendicular al azimut de la cara del módulo.</div></div>
+</div>
+<div class="card" style="margin-top:12px"><h3>Montaje coplanar</h3><p class="muted">Módulos colocados paralelos a la cubierta. Introduce aquí la inclinación óptima o real de esta instalación.</p><label>Ángulo óptimo coplanar (°)<input id="tiltCoplanar" type="number" value="30" min="0" max="90" step="1"></label></div>
+<div class="card" style="margin-top:12px"><h3>Montaje con estructura</h3><p class="muted">Módulos elevados sobre estructura. Puedes introducir una inclinación distinta de la coplanar.</p><label>Ángulo óptimo con estructura (°)<input id="tiltStructure" type="number" value="30" min="0" max="90" step="1"></label></div>
+<div class="card" style="margin-top:12px"><h3>Configuración del estudio</h3><label>Tipo de montaje que se analizará<select id="mountType"><option value="coplanar">Coplanar</option><option value="structure">Con estructura</option></select></label><p class="mutedbox">El cálculo de sombras, la distribución y el enlace a PVGIS utilizarán el ángulo del tipo de montaje seleccionado. Los dos ángulos se guardan por separado.</p><input id="tilt" type="hidden" value="30"></div>
+<div id="rowGeometry" class="mutedbox">Azimut medido desde el norte geográfico, en sentido horario. El eje de filas debería ser perpendicular al azimut de la cara del módulo.</div></div>
 <div class="card"><h2>Periodo y horario de análisis</h2><div class="grid">
 <label>Año de referencia<input id="year" type="number" value="2026" min="2000" max="2100" step="1"></label>
 <label>Periodo<select id="period"><option value="all">Todo el año · día 21 de cada mes</option><option value="winter">Invierno · dic-feb</option><option value="summer">Verano · jun-ago</option><option value="month">Un mes concreto</option></select></label>
@@ -286,36 +290,41 @@ function calcSolar(){
 $('calc').onclick=calcSolar;
 $('mode').onchange=()=>{$('toleranceWrap').classList.toggle('hidden',$('mode').value!=='compact')};
 $('timeMode').onchange=()=>{$('timeHelp').textContent=$('timeMode').value==='solar'?'Se analizarán las horas solares verdaderas indicadas. En este modo la longitud no cambia la posición solar; se utiliza si eliges hora oficial local.':'Se analizarán las horas oficiales locales indicadas. Se convertirán a hora solar usando longitud, ecuación del tiempo y huso horario; el horario de verano europeo puede aplicarse automáticamente.'};
+function syncMountingAngle(){
+ const selected=$('mountType').value;
+ const angle=Number($(selected==='structure'?'tiltStructure':'tiltCoplanar').value);
+ if(Number.isFinite(angle)&&angle>=0&&angle<=90){$('tilt').value=String(angle);updatePvgisLink();}
+}
+$('mountType').addEventListener('change',syncMountingAngle);
+$('tiltCoplanar').addEventListener('input',()=>{if($('mountType').value==='coplanar')syncMountingAngle();});
+$('tiltStructure').addEventListener('input',()=>{if($('mountType').value==='structure')syncMountingAngle();});
+syncMountingAngle();
 function refreshPvgisCoordinates(){
  const lat=v('lat'),lon=v('lon'),latOut=$('pvgisLat'),lonOut=$('pvgisLon'),status=$('pvgisExternalStatus');
  if(!Number.isFinite(lat)||lat < -90||lat > 90||!Number.isFinite(lon)||lon < -180||lon > 180){latOut.textContent='—';lonOut.textContent='—';status.textContent='Introduce una latitud válida (−90 a 90) y una longitud válida (−180 a 180).';return false;}
  latOut.textContent=lat.toFixed(5);lonOut.textContent=lon.toFixed(5);status.textContent='Coordenadas listas. Se enviarán directamente a la consulta oficial de PVGIS.';return true;
 }
-$('openPvgis').onclick=()=>{
+function updatePvgisLink(){
  if(!refreshPvgisCoordinates())return;
- const lat=v('lat'),lon=v('lon');
- const peakpower=Number(v('targetKwp'));
- const tilt=Number(v('tilt'));
- const faceAz=Number(v('faceAz'));
- if(!Number.isFinite(peakpower)||peakpower<=0||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(faceAz)){ $('pvgisExternalStatus').textContent='Comprueba la potencia objetivo, la inclinación y el azimut antes de abrir PVGIS.';return; }
+ const lat=v('lat'),lon=v('lon'),peakpower=Number(v('targetKwp')),tilt=Number(v('tilt')),faceAz=Number(v('faceAz'));
+ if(!Number.isFinite(peakpower)||peakpower<=0||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(faceAz))return;
  const aspect=((faceAz-180+540)%360)-180;
  const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:String(peakpower),loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(tilt),aspect:String(aspect),outputformat:'json',browser:'0'});
- const url='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
- window.open(url,'_blank','noopener');
-};
-['lat','lon'].forEach(id=>$(id).addEventListener('input',refreshPvgisCoordinates));
-refreshPvgisCoordinates();
+ $('openPvgis').href='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
+}
+['lat','lon','targetKwp','tilt','faceAz'].forEach(id=>$(id).addEventListener('input',updatePvgisLink));
+updatePvgisLink();
 $('gpsLocation').onclick=()=>{
  const status=$('locationStatus');
  if(!navigator.geolocation){status.textContent='Este navegador no ofrece geolocalización.';return;}
  status.textContent='Solicitando permiso de ubicación al móvil…';
  navigator.geolocation.getCurrentPosition(async pos=>{
   $('lat').value=pos.coords.latitude.toFixed(6);$('lon').value=pos.coords.longitude.toFixed(6);$('place').value='Ubicación GPS del dispositivo';$('preset').value='manual';
-  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Las coordenadas ya están listas para consultar PVGIS.`;refreshPvgisCoordinates();
+  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Las coordenadas ya están listas para consultar PVGIS.`;updatePvgisLink();
  },err=>{const msgs={1:'Permiso de ubicación denegado.',2:'No se pudo determinar la ubicación.',3:'Se agotó el tiempo de espera.'};status.textContent=(msgs[err.code]||'Error de geolocalización')+' Puedes introducir las coordenadas manualmente.';},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 };
 
-$('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123';refreshPvgisCoordinates();}};
+$('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123';updatePvgisLink();}};
 ['faceAz','rowAz'].forEach(id=>$(id).addEventListener('input',updateRowGeometry));
 $('pack').onclick=()=>{
  let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();
@@ -429,7 +438,7 @@ $('trackerCsv').onclick=()=>{if(!trackerRows.length)return;const head=['Hora','H
 (()=>{const now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);$('trackerDate').value=local.toISOString().slice(0,10);})();
 
 // Invalidar resultados antiguos cuando se modifican datos de entrada.
-const solarInputs=['lat','lon','tz','faceAz','rowAz','tilt','year','period','month','timeMode','start','end','interval','mode','shadeTolerance','dst','pw','ph'];
+const solarInputs=['lat','lon','tz','faceAz','rowAz','tilt','tiltCoplanar','tiltStructure','mountType','year','period','month','timeMode','start','end','interval','mode','shadeTolerance','dst','pw','ph'];
 solarInputs.forEach(id=>$(id).addEventListener('change',()=>{lastSolar=null;layout=null;window.solarGap=undefined;}));
 const layoutInputs=['rw','rl','mx','my','orient','pw','ph','wp','targetKwp','pg','manual','gapMode'];
 layoutInputs.forEach(id=>$(id).addEventListener('change',()=>{layout=null;}));

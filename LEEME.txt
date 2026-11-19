@@ -1,4 +1,4 @@
-SOLAR ROOF PLANNER — PAQUETE 3.5.4 — PVGIS CON COORDENADAS
+SOLAR ROOF PLANNER — PAQUETE 3.5.6 — PVGIS CON COORDENADAS
 
 Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - index.html
@@ -10,7 +10,7 @@ CAMBIOS DE ESTA ENTREGA
 - Se incorpora una potencia objetivo de instalación en kWp. La distribución calcula el número entero de paneles necesario según la potencia unitaria seleccionada.
 - La colocación ajusta la última fila para representar exactamente el número de módulos calculado; si la cubierta no tiene capacidad suficiente, informa del máximo instalable y lo representa.
 - El resumen y las exportaciones CSV/Excel distinguen potencia objetivo y potencia instalada resultante.
-- Se corrige la identificación de versión: esta entrega es 3.5.4.
+- Se corrige la identificación de versión: esta entrega es 3.5.5.
 - Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
 - Se añade backtracking geométrico al simulador diario del seguidor solar de un eje horizontal.
 - Se corrige la fórmula de backtracking: la corrección angular se resta del ángulo ideal conforme al método NREL/pvlib para eje horizontal y terreno plano.
@@ -34,7 +34,7 @@ LIMITACIONES IMPORTANTES
 Esta entrega NO es la versión 4.0 ni incorpora todavía simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
 
 PUBLICACIÓN
-Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.5.4. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.5.6. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
 
 SEGUIDOR SOLAR — NOTA DE USO
 El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El backtracking es una aproximación geométrica para filas paralelas sobre terreno horizontal. No incorpora control por viento, terreno irregular, obstáculos ni validación estructural o mecánica.
@@ -60,4 +60,10 @@ POTENCIA OBJETIVO Y DISTRIBUCIÓN
 - Cambiar la potencia objetivo requiere volver a pulsar «Generar distribución».
 
 
-CAMBIO 3.5.4: se corrige el botón de PVGIS. La URL anterior abría la interfaz web con parámetros que no están documentados para precargar la ubicación y por eso no funcionaba. Ahora se abre el servicio oficial PVGIS API PVcalc v5.3 con latitud, longitud, potencia objetivo (kWp), inclinación y orientación del proyecto. Devuelve el resultado oficial en JSON. Se actualiza la caché del service worker.
+CAMBIO 3.5.5: se corrige el botón de PVGIS. La URL anterior abría la interfaz web con parámetros que no están documentados para precargar la ubicación y por eso no funcionaba. Ahora se abre el servicio oficial PVGIS API PVcalc v5.3 con latitud, longitud, potencia objetivo (kWp), inclinación y orientación del proyecto. Devuelve el resultado oficial en JSON. Se actualiza la caché del service worker.
+
+
+Versión 3.5.6: Sol y sombras pasa a ser la primera pestaña. En esa pestaña hay un enlace azul al cálculo PVGIS con latitud/longitud y parámetros del proyecto actualizados automáticamente, y otro enlace azul a la interfaz interactiva oficial de PVGIS.
+
+
+CAMBIO 3.5.6: en «Sol y sombras» se separan los ajustes de montaje coplanar y montaje con estructura. Cada modalidad tiene su propio campo de ángulo óptimo. En «Configuración del estudio» se elige qué modalidad se calcula; el ángulo seleccionado alimenta el cálculo de sombras, la distribución y el enlace PVGIS. La caché del service worker se actualiza a v16.
