@@ -1,96 +1,356 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#123b2c"><meta name="description" content="Diseño fotovoltaico y análisis anual de sombras entre filas.">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#126b4b">
+<meta name="description" content="Diseño preliminar fotovoltaico con geometría solar y sombras entre filas durante el año.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>Solar Roof Planner</title>
 <style>
-:root{--green:#123b2c;--green2:#1c6248;--lime:#c9e86b;--bg:#f3f6f2;--card:#fff;--ink:#17251e;--muted:#66756c;--line:#dce5de;--warn:#fff2d7;--bad:#ffe4e0}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-header{background:linear-gradient(135deg,#103b2b,#24684b);color:white;padding:22px 18px 18px;border-radius:0 0 22px 22px}
-header .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cce5d3}h1{font-size:24px;margin:5px 0}header p{margin:5px 0 0;color:#e0eee4;font-size:13px}
-main{max-width:760px;margin:auto;padding:14px}
-.tabs{display:flex;gap:7px;overflow:auto;padding:4px 0 12px;position:sticky;top:0;background:var(--bg);z-index:2}
-.tabs button{border:1px solid var(--line);background:white;color:var(--muted);padding:10px 13px;border-radius:12px;white-space:nowrap;font-weight:650}
-.tabs button.active{background:var(--green);color:white;border-color:var(--green)}
-section.panel{display:none}section.panel.active{display:block}
-.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:12px;box-shadow:0 3px 12px #163b2b0a}
-h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:16px 0 8px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-label{display:block;font-size:12px;color:var(--muted);font-weight:650;margin-bottom:5px}
-input,select{width:100%;min-width:0;border:1px solid #cfdad2;border-radius:10px;padding:12px 10px;font:inherit;background:#fff;color:var(--ink)}
-small,.hint{color:var(--muted);font-size:12px;line-height:1.45}
-button.primary{width:100%;border:0;border-radius:12px;background:var(--green);color:white;font-weight:750;padding:14px;margin-top:12px;font-size:15px}
-button.secondary{border:1px solid var(--line);background:white;border-radius:10px;padding:10px 12px;font-weight:650;color:var(--green)}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
-.stat{background:#f2f7f2;border-radius:12px;padding:12px}.stat b{display:block;font-size:20px;color:var(--green)}.stat span{font-size:11px;color:var(--muted)}
-.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px;min-width:440px}th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:700}
-.good{color:#187347;font-weight:700}.warn{color:#9a6100;font-weight:700}.bad{color:#b33b2d;font-weight:700}
-canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fbfdfb}
-.notice{background:var(--warn);padding:11px;border-radius:11px;font-size:12px;line-height:1.5;margin-top:10px}
-.footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
-@media(min-width:620px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,1fr)}header{padding-left:max(18px,calc((100% - 724px)/2))}}
-</style></head>
+:root{color-scheme:light dark;--green:#126b4b;--line:#9998;--soft:#8882;--blue:#287fa0;--orange:#c47b24}
+*{box-sizing:border-box}body{font:16px system-ui;margin:0;padding:14px;max-width:1000px;margin:auto}
+header{display:flex;align-items:center;gap:12px;margin:4px 0 18px}header img{width:48px;height:48px}
+h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 9px}h3{font-size:14px;margin:12px 0 5px}small,.muted{opacity:.72;font-size:12px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+button{border:0;border-radius:9px;padding:11px 14px;background:var(--green);color:white;font-weight:650;cursor:pointer}
+nav button{background:transparent;color:inherit;border:1px solid var(--line)}nav button.active{background:var(--green);color:white}
+section{display:none}section.active{display:block}
+.card{border:1px solid var(--line);border-radius:13px;padding:13px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+label{display:block;font-size:13px;margin:6px 0}
+input,select{display:block;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;margin-top:4px;min-height:42px}
+input[type=checkbox]{display:inline-block;width:auto;min-height:0;margin:0 6px 0 0;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.num{font-size:22px;font-weight:750}.primary{width:100%;margin:8px 0}
+.notice{font-size:12px;padding:10px;border-radius:9px;background:var(--soft);line-height:1.45;margin:10px 0}
+.warn{border-left:4px solid var(--orange);padding:9px 11px;background:var(--soft);font-size:12px;margin:9px 0;border-radius:6px}
+.good{border-left:4px solid var(--green);padding:9px 11px;background:var(--soft);font-size:12px;margin:9px 0;border-radius:6px}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px;min-width:650px}td,th{text-align:right;padding:7px 5px;border-bottom:1px solid var(--line);white-space:nowrap}td:first-child,th:first-child{text-align:left}
+canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;display:block;margin-top:8px}
+.inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hidden{display:none!important}.mutedbox{font-size:12px;opacity:.78;margin-top:7px;line-height:1.45}
+svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;display:block}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media print{nav,button,.notice{display:none!important}body{max-width:none;padding:0}section{display:block!important}.card{break-inside:avoid}}
+</style>
+</head>
 <body>
-<header><div class="eyebrow">Herramienta fotovoltaica</div><h1>Solar Roof Planner</h1><p>Diseño de paneles · geometría solar · sombras entre filas</p></header>
-<main>
-<nav class="tabs" aria-label="Secciones">
-<button class="active" data-tab="sombras">Sombras anuales</button><button data-tab="diseno">Diseño del tejado</button><button data-tab="ajustes">Ubicación y ayuda</button>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.1 · PVGIS, optimización anual y sombras entre filas</div></div></header>
+<nav>
+<button class="active" data-tab="roof">Tejado</button><button data-tab="solar">Sol y sombras</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
-<section id="sombras" class="panel active">
-<div class="card"><h2>Configuración del campo solar</h2>
-<div class="grid">
-<div><label for="lat">Latitud (°)</label><input id="lat" type="number" step=".0001" value="38.35"></div>
-<div><label for="lon">Longitud (°)</label><input id="lon" type="number" step=".0001" value="-0.481"></div>
-<div><label for="tilt">Inclinación módulo (°)</label><input id="tilt" type="number" min="0" max="90" value="30"></div>
-<div><label for="length">Largo del módulo (m)</label><input id="length" type="number" min=".1" step=".01" value="1.8"></div>
-<div><label for="azimuth">Azimut de la cara (°)</label><input id="azimuth" type="number" min="0" max="359" value="180"></div>
-<div><label for="gap">Separación libre actual (m)</label><input id="gap" type="number" min="0" step=".01" value="1.5"></div>
-</div>
-<p class="hint">Azimut: 0° norte, 90° este, 180° sur y 270° oeste. El análisis se realiza en hora solar, no en hora oficial del reloj.</p>
-<button class="primary" id="calc">Calcular sombras del año</button>
-<div id="summary" class="stats" aria-live="polite"></div>
-</div>
-<div class="card"><h2>Resultado por mes · día 21</h2><div class="tablewrap"><table><thead><tr><th>Mes</th><th>Hora solar crítica</th><th>Altura solar</th><th>Azimut solar</th><th>Separación libre mínima</th><th>Con tu separación</th></tr></thead><tbody id="results"><tr><td colspan="6">Pulsa «Calcular sombras del año».</td></tr></tbody></table></div>
-<div class="notice">Criterio geométrico: se calcula la proyección de la sombra de la fila sobre la dirección perpendicular a las filas. La separación recomendada evita que la sombra alcance la siguiente fila en los instantes analizados (21 de cada mes, de 09:00 a 15:00, cada 30 minutos). No incluye obstáculos, relieve, horizonte ni sombras de chimeneas.</div>
-</div>
-<div class="card"><h2>Altura solar durante el año</h2><canvas id="chart" width="680" height="260"></canvas><small>Se muestra la altura solar mínima dentro de la ventana analizada para cada día 21.</small></div>
+<section id="roof" class="active">
+<div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
+<label>Ancho de cubierta (m)<input id="rw" type="number" value="10" min="0.1" step="0.1"></label>
+<label>Largo de cubierta (m)<input id="rl" type="number" value="8" min="0.1" step="0.1"></label>
+<label>Margen lateral (m)<input id="mx" type="number" value="0.3" min="0" step="0.05"></label>
+<label>Margen frontal/trasero (m)<input id="my" type="number" value="0.3" min="0" step="0.05"></label>
+<label>Formato del panel<select id="orient"><option value="v">Vertical (lado largo en pendiente)</option><option value="h">Horizontal (lado corto en pendiente)</option></select></label>
+</div><div class="mutedbox">El plano de distribución supone cubierta rectangular y filas paralelas al lado del ancho. Es un esquema en planta, no un replanteo de estructura.</div></div>
+<div class="card"><h2>Panel fotovoltaico</h2><div class="grid">
+<label>Ancho del panel (m)<input id="pw" type="number" value="1.134" min="0.1" step="0.001"></label>
+<label>Largo del panel (m)<input id="ph" type="number" value="1.762" min="0.1" step="0.001"></label>
+<label>Potencia (Wp)<input id="wp" type="number" value="450" min="1" step="5"></label>
+<label>Separación entre paneles en fila (cm)<input id="pg" type="number" value="2" min="0" step="0.5"></label>
+</div></div>
+<button class="primary" onclick="showTab('solar')">Continuar al estudio solar →</button>
 </section>
-<section id="diseno" class="panel">
-<div class="card"><h2>Distribución sobre el tejado</h2><div class="grid">
-<div><label for="roofW">Ancho tejado (m)</label><input id="roofW" type="number" value="8.4" min=".1" step=".1"></div>
-<div><label for="roofH">Largo tejado (m)</label><input id="roofH" type="number" value="4.2" min=".1" step=".1"></div>
-<div><label for="panelW">Ancho panel (m)</label><input id="panelW" type="number" value="1.13" min=".1" step=".01"></div>
-<div><label for="panelH">Largo panel (m)</label><input id="panelH" type="number" value="1.8" min=".1" step=".01"></div>
-<div><label for="margin">Margen perimetral (m)</label><input id="margin" type="number" value=".3" min="0" step=".05"></div>
-<div><label for="aisle">Pasillo entre bloques (m)</label><input id="aisle" type="number" value="0" min="0" step=".05"></div>
-</div><div class="grid" style="margin-top:10px"><div><label for="orientation">Orientación del panel</label><select id="orientation"><option value="portrait">Vertical (lado largo arriba-abajo)</option><option value="landscape">Horizontal (lado largo izquierda-derecha)</option></select></div><div><label for="power">Potencia por panel (Wp)</label><input id="power" type="number" value="450" min="1"></div></div>
-<button class="primary" id="layout">Calcular distribución</button><div id="layoutStats" class="stats"></div><canvas id="roofCanvas" width="680" height="360" style="margin-top:12px"></canvas><p class="hint">La distribución es rectangular y orientativa. No sustituye la comprobación de obstáculos, estructura, pasillos reglamentarios ni medidas reales.</p>
+<section id="solar">
+<div class="card"><h2>Ubicación</h2><div class="grid">
+<label>Referencia<select id="preset"><option value="alicante">Alicante · estación IGN ALAC</option><option value="manual">Coordenadas manuales</option></select></label>
+<label>Localidad / referencia<input id="place" value="Alicante (referencia IGN ALAC)"></label>
+<label>Latitud (°)<input id="lat" type="number" value="38.33892" min="-90" max="90" step="0.00001"></label>
+<label>Longitud (°; este + / oeste −)<input id="lon" type="number" value="-0.48123" min="-180" max="180" step="0.00001"></label>
+<label>Huso horario estándar UTC<input id="tz" type="number" value="1" min="-12" max="14" step="0.5"></label>
+</div>
+<div class="inline"><button type="button" id="gpsLocation">Usar ubicación del móvil</button><button type="button" id="pvgisLookup">Consultar PVGIS para estas coordenadas</button></div>
+<div id="pvgisStatus" class="notice" aria-live="polite">Ubicación de referencia cargada. Puedes usar el GPS del móvil o introducir coordenadas y consultar PVGIS para sus datos topográficos y horizonte.</div>
+<div class="mutedbox">PVGIS no es un geocodificador de direcciones: necesita latitud y longitud. El GPS del móvil puede proporcionar las coordenadas de la parcela; después se consulta PVGIS para obtener altitud y perfil de horizonte. El horizonte de terreno es información complementaria y no sustituye el cálculo de sombras entre filas.</div>
+<div class="inline"><label>Tipo de montaje PVGIS<select id="pvgisMount"><option value="free">Estructura libre (free-standing)</option><option value="building">Integrado en edificio</option></select></label><button type="button" id="pvgisOptimal">Calcular inclinación óptima PVGIS</button></div>
+<div id="pvgisOptimalOut" class="notice" aria-live="polite">PVGIS puede calcular la inclinación anual óptima manteniendo el azimut actual, y también la combinación óptima de inclinación y orientación.</div>
+<label class="inline"><input id="dst" type="checkbox" checked> Aplicar horario de verano europeo automáticamente al usar hora civil</label>
+</div>
+<div class="card"><h2>Geometría de módulos y filas</h2><div class="grid">
+<label>Azimut de la cara del módulo (°)<input id="faceAz" type="number" value="180" min="0" max="359.99" step="1"></label>
+<label>Azimut del eje de las filas (°)<input id="rowAz" type="number" value="90" min="0" max="359.99" step="1"></label>
+<label>Inclinación del módulo (°)<input id="tilt" type="number" value="30" min="0" max="90" step="1"></label>
+</div><div id="rowGeometry" class="mutedbox">Azimut medido desde el norte geográfico, en sentido horario. El eje de filas debería ser perpendicular al azimut de la cara del módulo.</div></div>
+<div class="card"><h2>Periodo y horario de análisis</h2><div class="grid">
+<label>Año de referencia<input id="year" type="number" value="2026" min="2000" max="2100" step="1"></label>
+<label>Periodo<select id="period"><option value="all">Todo el año · día 21 de cada mes</option><option value="winter">Invierno · dic-feb</option><option value="summer">Verano · jun-ago</option><option value="month">Un mes concreto</option></select></label>
+<label>Mes<select id="month"><option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option><option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option><option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option><option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option></select></label>
+<label>Referencia de las horas<select id="timeMode"><option value="solar">Hora solar verdadera</option><option value="civil">Hora oficial local</option></select></label>
+<label>Desde<input id="start" type="number" value="9" min="0" max="23.99" step="0.25"></label>
+<label>Hasta<input id="end" type="number" value="15" min="0.01" max="24" step="0.25"></label>
+<label>Resolución<select id="interval"><option value="5">5 minutos (recomendado)</option><option value="10">10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select></label>
+</div><div id="timeHelp" class="mutedbox">Se analizarán las horas solares verdaderas indicadas. En este modo la longitud no cambia la posición solar; se utiliza si eliges hora oficial local.</div></div>
+<div class="card"><h2>Criterio de separación entre filas</h2>
+<label>Criterio<select id="mode"><option value="full">Sin sombras en todo el horario elegido</option><option value="compact">Separación compacta con sombra parcial limitada</option></select></label>
+<div id="toleranceWrap" class="hidden"><label>Sombra máxima admisible sobre el módulo en el peor instante (%)<input id="shadeTolerance" type="number" value="10" min="0" max="50" step="1"></label><div class="mutedbox">El programa calcula la menor separación que mantiene la fracción geométrica sombreada por debajo de este porcentaje en todas las muestras del periodo.</div></div>
+<button class="primary" id="calc">Calcular sombras y separación anual</button>
+<div id="solarOut" aria-live="polite"><p class="muted">Introduce los parámetros y pulsa «Calcular».</p></div>
 </div>
 </section>
-<section id="ajustes" class="panel">
-<div class="card"><h2>Ubicación de referencia</h2><p><b>Alicante, España</b></p><p class="hint">Valores iniciales: latitud 38,35° N y longitud aproximada −0,481° E. Puedes cambiar ambos campos en «Sombras anuales» para cualquier ubicación.</p><button class="secondary" id="geo">Usar ubicación del móvil</button><p id="geoStatus" class="hint" aria-live="polite"></p></div>
-<div class="card"><h2>Cómo interpretar el cálculo</h2><p class="hint">La altura y el azimut solares se calculan con declinación solar y ángulo horario. Para cada instante se obtiene la componente de la sombra en la dirección perpendicular a las filas. La distancia entre filas se expresa como separación libre entre bordes, además del largo horizontal ocupado por el módulo inclinado.</p><p class="hint">La longitud se conserva como dato de ubicación, pero al introducir directamente hora solar no interviene en el ángulo horario. Para convertir horas oficiales a hora solar harían falta también la fecha, huso horario y ecuación del tiempo.</p></div>
-<div class="card"><h2>Instalar en Android</h2><p class="hint">Cuando esta carpeta esté publicada en una dirección HTTPS, abre esa dirección con Chrome, toca el menú ⋮ y selecciona «Instalar aplicación» o «Añadir a pantalla de inicio». El modo sin conexión se activa después de la primera carga.</p></div>
+<section id="layout">
+<div class="card"><h2>Distribución automática en cubierta</h2>
+<label>Separación libre entre filas (m)<input id="manual" type="number" value="0" min="0" step="0.01"></label>
+<label>Origen de la separación<select id="gapMode"><option value="auto">Usar cálculo solar</option><option value="manual">Usar valor manual</option></select></label>
+<button class="primary" id="pack">Generar distribución</button><div id="drawing"></div>
+<div class="mutedbox">La separación solar se aplica entre filas, no entre paneles de una misma fila. La distribución es aproximada y presupone que las filas siguen el lado largo del rectángulo.</div>
+</div>
 </section>
-<div class="footer">Solar Roof Planner · Cálculo geométrico orientativo · Versión móvil</div>
-</main>
+<section id="results">
+<div class="card"><h2>Resumen del proyecto</h2><div class="stats">
+<div class="stat"><div class="num" id="nPanels">—</div><small>Paneles</small></div>
+<div class="stat"><div class="num" id="kwp">—</div><small>Potencia pico</small></div>
+<div class="stat"><div class="num" id="area">—</div><small>Superficie de paneles</small></div>
+<div class="stat"><div class="num" id="rows">—</div><small>Filas</small></div>
+</div><div id="details"></div><button class="primary" onclick="window.print()">Imprimir / guardar PDF</button><button class="primary" id="csv">Exportar CSV</button></div>
+</section>
+<div class="notice"><b>Alcance:</b> cálculo geométrico preliminar para filas rectas, paralelas e iguales sobre plano horizontal, con inclinación fija. No modela relieve, horizonte, edificios, árboles, chimeneas, irregularidad del terreno, estructura, retranqueos, bifacialidad ni pérdidas eléctricas. El porcentaje sombreado es longitud geométrica del módulo en una sección 2D; no equivale directamente a porcentaje de potencia perdida. No sustituye un estudio profesional ni un diseño estructural/eléctrico.</div>
 <script>
-const $=id=>document.getElementById(id), months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));}));
-function rad(d){return d*Math.PI/180} function deg(r){return r*180/Math.PI}
-function solar(lat,day,hour){const phi=rad(lat),g=2*Math.PI/365*(day-1),decl=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);const H=rad(15*(hour-12));const sinAlt=Math.sin(phi)*Math.sin(decl)+Math.cos(phi)*Math.cos(decl)*Math.cos(H);const alt=Math.asin(Math.max(-1,Math.min(1,sinAlt)));const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(decl)*Math.cos(phi))+Math.PI;return {alt:deg(alt),az:(deg(az)+360)%360};}
-function dayOfYear(m){return Math.floor((Date.UTC(2025,m,21)-Date.UTC(2025,0,0))/86400000)}
-function calcShadows(){const lat=+ $('lat').value,tilt=rad(+$('tilt').value),L=+$('length').value,face=+$('azimuth').value,gap=+$('gap').value;if(!Number.isFinite(lat)||Math.abs(lat)>66||L<=0||tilt<0||tilt>Math.PI/2){alert('Revisa latitud, inclinación y largo del módulo.');return}
-let rows=[],all=[];for(let m=0;m<12;m++){let worst={gap:0};for(let h=9;h<=15.001;h+=.5){let s=solar(lat,dayOfYear(m),h);if(s.alt<=0)continue;let delta=rad(s.az-face),toward=Math.cos(delta);let shadow=toward>0?(L*Math.sin(tilt)/Math.tan(rad(s.alt)))*toward:0;let clear=Math.max(0,shadow);if(clear>worst.gap)worst={gap:clear,h,alt:s.alt,az:s.az};all.push({m,h,...s,clear});}rows.push(worst);}
-$('results').innerHTML=rows.map((r,i)=>{let cls=gap+0.001>=r.gap?'good':'bad';return `<tr><td>${months[i]}</td><td>${r.h?.toFixed(1)??'—'} h</td><td>${r.alt?.toFixed(1)??'—'}°</td><td>${r.az?.toFixed(1)??'—'}°</td><td>${r.gap.toFixed(2)} m</td><td class="${cls}">${gap+0.001>=r.gap?'Sin sombra':'Con sombra'}</td></tr>`}).join('');
-const max=Math.max(...rows.map(x=>x.gap));const critical=rows.reduce((a,b)=>b.gap>a.gap?b:a,rows[0]);$('summary').innerHTML=`<div class="stat"><b>${max.toFixed(2)} m</b><span>Separación libre máxima recomendada</span></div><div class="stat"><b>${months[rows.indexOf(critical)]}</b><span>Mes más exigente</span></div><div class="stat"><b>${gap.toFixed(2)} m</b><span>Separación actual</span></div><div class="stat"><b class="${gap>=max?'good':'bad'}">${gap>=max?'OK':'Insuficiente'}</b><span>Según el criterio analizado</span></div>`;drawChart(rows);window.lastShadowRows=rows;}
-function drawChart(rows){let c=$('chart'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);let pad=42,w=c.width-pad*2,h=c.height-60,max=Math.max(1,...rows.map(r=>r.gap))*1.15;ctx.strokeStyle='#dce5de';ctx.fillStyle='#66756c';ctx.font='12px system-ui';for(let i=0;i<=4;i++){let y=pad+h-i*h/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+w,y);ctx.stroke();ctx.fillText((max*i/4).toFixed(1)+'m',4,y+4)}rows.forEach((r,i)=>{let bw=w/12*.55,x=pad+i*w/12+(w/12-bw)/2,bar=r.gap/max*h;ctx.fillStyle='#2c815b';ctx.fillRect(x,pad+h-bar,bw,bar);ctx.fillStyle='#66756c';ctx.fillText(months[i].slice(0,3),x-3,pad+h+20)});}
-$('calc').addEventListener('click',calcShadows);
-function calcLayout(){let rw=+$('roofW').value,rh=+$('roofH').value,pw=+$('panelW').value,ph=+$('panelH').value,margin=+$('margin').value,aisle=+$('aisle').value,power=+$('power').value;if([rw,rh,pw,ph].some(x=>x<=0)||margin*2>=Math.min(rw,rh)){alert('Revisa las medidas.');return}let a=$('orientation').value==='portrait'?pw:ph,b=$('orientation').value==='portrait'?ph:pw;let nx=Math.floor((rw-2*margin)/(a+aisle)),ny=Math.floor((rh-2*margin)/b),n=Math.max(0,nx)*Math.max(0,ny);$('layoutStats').innerHTML=`<div class="stat"><b>${n}</b><span>Paneles estimados</span></div><div class="stat"><b>${(n*power/1000).toFixed(2)} kWp</b><span>Potencia pico</span></div><div class="stat"><b>${nx} × ${ny}</b><span>Columnas × filas</span></div><div class="stat"><b>${(rw*rh).toFixed(1)} m²</b><span>Superficie total</span></div>`;let c=$('roofCanvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);let scale=Math.min((c.width-70)/rw,(c.height-70)/rh),x0=(c.width-rw*scale)/2,y0=(c.height-rh*scale)/2;ctx.fillStyle='#edf2ed';ctx.fillRect(x0,y0,rw*scale,rh*scale);ctx.strokeStyle='#52685b';ctx.lineWidth=3;ctx.strokeRect(x0,y0,rw*scale,rh*scale);ctx.fillStyle='#24684b';for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){ctx.fillRect(x0+(margin+x*(a+aisle))*scale,y0+(margin+y*b)*scale,a*scale-2,b*scale-2)}ctx.fillStyle='#52685b';ctx.font='13px system-ui';ctx.fillText(`${rw} m`,x0,y0-12);ctx.fillText(`${rh} m`,x0+rw*scale+8,y0+rh*scale/2);}
-$('layout').addEventListener('click',calcLayout);
-$('geo').addEventListener('click',()=>{if(!navigator.geolocation){$('geoStatus').textContent='Este navegador no ofrece geolocalización.';return}navigator.geolocation.getCurrentPosition(p=>{$('lat').value=p.coords.latitude.toFixed(4);$('lon').value=p.coords.longitude.toFixed(4);$('geoStatus').textContent='Ubicación cargada. Pulsa «Calcular sombras del año».'},e=>$('geoStatus').textContent='No se pudo obtener la ubicación: '+e.message,{enableHighAccuracy:true,timeout:10000})});
-if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-calcShadows();calcLayout();
-</script></body></html>
+'use strict';
+const $=id=>document.getElementById(id);
+const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let monthly=[],layout=null,lastSolar=null,pvgisData=null;
+const rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI;
+const v=id=>Number($(id).value);
+const norm=a=>((a%360)+360)%360;
+const angleDiff=(a,b)=>Math.abs(((a-b+540)%360)-180);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function showTab(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function isLeapYear(y){return y%4===0&&(y%100!==0||y%400===0)}
+function dayOfYear(y,m,d){return Math.floor((Date.UTC(y,m,d)-Date.UTC(y,0,1))/86400000)+1}
+function fractionalYear(y,doy,hour){const days=isLeapYear(y)?366:365;return 2*Math.PI/days*(doy-1+(hour-12)/24)}
+// NOAA: declinación solar aproximada y ecuación del tiempo.
+function solarDeclination(y,doy,hour){
+ const g=fractionalYear(y,doy,hour);
+ return 0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+}
+function equationOfTime(y,doy,hour){
+ const g=fractionalYear(y,doy,hour);
+ return 229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+}
+// Devuelve altura y azimut (desde norte, horario) y vector solar unitario Este-Norte-Arriba.
+function sunPosition(latDeg,y,doy,solarHour){
+ const phi=rad(latDeg),delta=solarDeclination(y,doy,solarHour),H=rad(15*(solarHour-12));
+ const east=-Math.cos(delta)*Math.sin(H);
+ const north=Math.cos(phi)*Math.sin(delta)-Math.sin(phi)*Math.cos(delta)*Math.cos(H);
+ const up=Math.sin(phi)*Math.sin(delta)+Math.cos(phi)*Math.cos(delta)*Math.cos(H);
+ const altitude=deg(Math.asin(clamp(up,-1,1)));
+ const azimuth=norm(deg(Math.atan2(east,north)));
+ return {altitude,azimuth,east,north,up};
+}
+function lastSunday(y,monthIndex){const last=new Date(Date.UTC(y,monthIndex+1,0));return last.getUTCDate()-last.getUTCDay()}
+function madridDST(y,m,d){
+ const march=lastSunday(y,2),october=lastSunday(y,9);
+ if(m>2&&m<9)return true;
+ if(m===2&&d>=march)return true;
+ if(m===9&&d<october)return true;
+ return false;
+}
+function solarTimeFromCivil(y,m,d,civilHour,longitude,standardOffset,useDST){
+ const doy=dayOfYear(y,m,d),eot=equationOfTime(y,doy,civilHour);
+ const offset=standardOffset+(useDST&&madridDST(y,m,d)?1:0);
+ const trueSolarMinutes=civilHour*60+eot+4*longitude-60*offset;
+ return trueSolarMinutes/60;
+}
+function rowNormalAzimuth(faceAz,rowAxisAz){
+ const back=norm(faceAz+180),candidates=[norm(rowAxisAz+90),norm(rowAxisAz-90)];
+ return angleDiff(candidates[0],back)<=angleDiff(candidates[1],back)?candidates[0]:candidates[1];
+}
+function moduleSlopeLength(){return $('orient').value==='v'?v('ph'):v('pw')}
+function shadeProjection(sun,rowNormal){
+ if(sun.up<=0)return 0;
+ const e=Math.sin(rad(rowNormal)),n=Math.cos(rad(rowNormal));
+ // Proyección de la dirección de sombra (-vector solar) sobre la dirección hacia la fila siguiente.
+ return Math.max(0,-(sun.east*e+sun.north*n)/sun.up);
+}
+function requiredGapForShade(L,beta,q,maxShadeFraction){
+ const b=rad(beta),f=clamp(maxShadeFraction,0,0.5);
+ return Math.max(0,L*((1-f)*q*Math.sin(b)-f*Math.cos(b)));
+}
+function shadeFraction(L,beta,q,gap){
+ const b=rad(beta),den=L*(Math.cos(b)+q*Math.sin(b));
+ if(q<=0||den<=1e-12)return 0;
+ return clamp(1-(L*Math.cos(b)+gap)/den,0,1);
+}
+function getMonths(){const p=$('period').value;if(p==='winter')return [0,1,11];if(p==='summer')return [5,6,7];if(p==='month')return [v('month')];return Array.from({length:12},(_,i)=>i)}
+function sampleMonth(m,settings){
+ const {year,lat,faceAz,rowAxis,tilt,L,start,end,step,timeMode,longitude,tz,dst,tolerance}=settings;
+ const doy=dayOfYear(year,m,21),rowNormal=rowNormalAzimuth(faceAz,rowAxis);
+ let maxNoShade={gap:0},maxTolerance={gap:0},minAlt=90,maxAlt=-90,samples=[];
+ const startMin=Math.round(start*60),endMin=Math.round(end*60),minutes=[];
+ for(let minute=startMin;minute<endMin;minute+=step)minutes.push(minute);
+ if(!minutes.length||minutes[minutes.length-1]!==endMin)minutes.push(endMin);
+ for(const minute of minutes){
+  const inputHour=minute/60;
+  const solarHour=timeMode==='civil'?solarTimeFromCivil(year,m,21,inputHour,longitude,tz,dst):inputHour;
+  const sun=sunPosition(lat,year,doy,solarHour);
+  if(sun.altitude<=0)continue;
+  minAlt=Math.min(minAlt,sun.altitude);maxAlt=Math.max(maxAlt,sun.altitude);
+  const q=shadeProjection(sun,rowNormal);
+  const gap0=requiredGapForShade(L,tilt,q,0);
+  const gapTol=requiredGapForShade(L,tilt,q,tolerance);
+  const sample={inputHour,solarHour,sun,q,gap0,gapTol};samples.push(sample);
+  if(gap0>maxNoShade.gap)maxNoShade={gap:gap0,...sample};
+  if(gapTol>maxTolerance.gap)maxTolerance={gap:gapTol,...sample};
+ }
+ return {m,doy,rowNormal,maxNoShade,maxTolerance,minAlt,maxAlt,samples};
+}
+function timeLabel(sample,mode){if(!sample||!Number.isFinite(sample.inputHour))return '—';const h=mode==='civil'?sample.inputHour:sample.solarHour;return formatHour(h)}
+function formatHour(h){let total=Math.round(h*60),sign=total<0?'-':'';total=Math.abs(total);const hh=Math.floor(total/60),mm=total%60;return sign+String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')}
+function safeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function drawChart(rows,gap){
+ const c=$('monthChart');if(!c)return;const ctx=c.getContext('2d'),W=c.width,H=c.height;
+ ctx.clearRect(0,0,W,H);const left=42,right=12,top=18,bottom=38,plotW=W-left-right,plotH=H-top-bottom;
+ const maxVal=Math.max(0.5,...rows.map(r=>r.maxNoShade.gap),gap)*1.12;
+ ctx.font='12px system-ui';ctx.strokeStyle='#8888';ctx.fillStyle='currentColor';ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){const y=top+plotH*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(W-right,y);ctx.stroke();ctx.fillText((maxVal*(1-i/4)).toFixed(1),5,y+4)}
+ const slot=plotW/rows.length,bw=Math.min(22,slot*.32);
+ rows.forEach((r,i)=>{const x=left+slot*i+slot*.12;const h0=r.maxNoShade.gap/maxVal*plotH,h1=gap/maxVal*plotH;ctx.fillStyle='#287fa0';ctx.fillRect(x,top+plotH-h0,bw,h0);ctx.fillStyle='#c47b24';ctx.fillRect(x+bw+3,top+plotH-h1,bw,h1);ctx.fillStyle='currentColor';ctx.textAlign='center';ctx.fillText(months[r.m].slice(0,3),x+bw+2, H-14)});
+ ctx.textAlign='left';ctx.fillStyle='#287fa0';ctx.fillRect(left,5,10,8);ctx.fillStyle='currentColor';ctx.fillText('Sin sombra',left+14,13);ctx.fillStyle='#c47b24';ctx.fillRect(left+112,5,10,8);ctx.fillStyle='currentColor';ctx.fillText('Separación elegida',left+126,13);
+}
+function updateRowGeometry(){
+ const face=norm(v('faceAz')),axis=norm(v('rowAz')),diff=angleDiff(face,axis),error=Math.abs(90-diff),normal=rowNormalAzimuth(face,axis);
+ $('rowGeometry').textContent=`Direcciones desde el norte geográfico, sentido horario. La fila siguiente queda hacia ${normal.toFixed(0)}°. Diferencia entre cara y eje de filas: ${diff.toFixed(1)}°.`+(error>5?' ADVERTENCIA: el modelo 2D supone que el eje de filas es perpendicular a la cara de los módulos; ajusta el azimut del eje para que la diferencia sea aproximadamente 90°.':' Geometría de filas coherente con la hipótesis perpendicular.');
+}
+function calcSolar(){
+ const year=v('year'),lat=v('lat'),lon=v('lon'),tz=v('tz'),face=norm(v('faceAz')),rowAxis=norm(v('rowAz')),tilt=v('tilt'),start=v('start'),end=v('end'),step=v('interval'),tolerance=v('shadeTolerance')/100,L=moduleSlopeLength();
+ if(!Number.isInteger(year)||year<2000||year>2100||!Number.isFinite(lat)||lat<=-90||lat>=90||!Number.isFinite(lon)||lon<-180||lon>180||!Number.isFinite(tz)||tz<-12||tz>14||!Number.isFinite(tilt)||tilt<0||tilt>90||!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>24||end<=start||L<=0){$('solarOut').innerHTML='<div class="warn">Comprueba latitud, longitud, inclinación, dimensiones y horario.</div>';return null}
+ if($('mode').value==='compact'&&(!Number.isFinite(tolerance)||tolerance<0||tolerance>0.5)){$('solarOut').innerHTML='<div class="warn">La sombra admisible debe estar entre 0 y 50 %.</div>';return null}
+ const settings={year,lat,longitude:lon,tz,dst:$('dst').checked,faceAz:face,rowAxis,tilt,L,start,end,step,timeMode:$('timeMode').value,tolerance:$('mode').value==='compact'?tolerance:0};
+ const rows=getMonths().map(m=>sampleMonth(m,settings));
+ if(!rows.length||rows.every(r=>!r.samples.length)){$('solarOut').innerHTML='<div class="warn">No hay muestras con el Sol sobre el horizonte en el horario elegido.</div>';return null}
+ const worstNo=rows.reduce((a,b)=>b.maxNoShade.gap>a.maxNoShade.gap?b:a,rows[0]);
+ const worstTol=rows.reduce((a,b)=>b.maxTolerance.gap>a.maxTolerance.gap?b:a,rows[0]);
+ const compact=$('mode').value==='compact';
+ // Redondeo siempre hacia arriba al centímetro para no quedar por debajo del mínimo geométrico calculado.
+ const rawGap=compact?worstTol.maxTolerance.gap:worstNo.maxNoShade.gap;
+ const gap=Math.ceil((rawGap-1e-10)*100)/100;
+ let worstShade={fraction:0,row:null,sample:null};
+ rows.forEach(r=>r.samples.forEach(s=>{const f=shadeFraction(L,tilt,s.q,gap);if(f>worstShade.fraction)worstShade={fraction:f,row:r,sample:s}}));
+ const rowNormal=rows[0].rowNormal,axisDiff=angleDiff(face,rowAxis),axisError=Math.abs(90-axisDiff),footprint=L*Math.cos(rad(tilt)),pitch=footprint+gap;
+ monthly=rows.map(r=>({...r,chosenGap:gap,chosenShade:Math.max(0,...r.samples.map(s=>shadeFraction(L,tilt,s.q,gap)))}));
+ lastSolar={settings,rows:monthly,gap,noShadeGap:worstNo.maxNoShade.gap,worstNoMonth:worstNo.m,worstNoSample:worstNo.maxNoShade,worstShade,footprint,pitch,rowNormal,compact};
+ window.solarGap=gap;
+ const modeText=compact?`Compacto · máximo ${Math.round(tolerance*100)} % de longitud del módulo sombreada en el peor instante`:'Sin sombras geométricas durante todo el horario y periodo muestreados';
+ const crit=worstNo.maxNoShade;
+ const critTime=timeLabel(crit,$('timeMode').value);
+ const solarTime=crit&&crit.sun?formatHour(crit.solarHour):'—';
+ const localTime=crit&&crit.sun?formatHour(crit.inputHour):'—';
+ const tableRows=monthly.map(r=>`<tr><td>${months[r.m]}</td><td>${r.maxNoShade.gap.toFixed(2)}</td><td>${gap.toFixed(2)}</td><td>${(r.chosenShade*100).toFixed(1)} %</td><td>${timeLabel(r.maxNoShade,$('timeMode').value)}</td><td>${r.maxNoShade.sun?r.maxNoShade.sun.altitude.toFixed(1)+'°':'—'}</td><td>${r.maxNoShade.sun?r.maxNoShade.sun.azimuth.toFixed(1)+'°':'—'}</td></tr>`).join('');
+ const mismatch=axisError>5?`<div class="warn">El eje de filas no es perpendicular al azimut de la cara (desviación ${axisError.toFixed(1)}°). El cálculo 2D puede dejar de representar la geometría real. Ajusta el eje o interpreta el resultado solo como orientación aproximada.</div>`:'';
+ const compactInfo=compact?`La separación compacta se obtiene resolviendo la fracción sombreada máxima admisible; no es un porcentaje arbitrario de la separación sin sombras. Sombra máxima calculada: <b>${(worstShade.fraction*100).toFixed(1)} %</b>.`:'La separación se fija con el peor caso de todas las fechas y horas seleccionadas.';
+ const pvgisInfo=pvgisData&&Math.abs(pvgisData.lat-lat)<1e-6&&Math.abs(pvgisData.lon-lon)<1e-6?' PVGIS se ha consultado para estas coordenadas; el perfil de horizonte se muestra como dato topográfico y no se aplica automáticamente al modelo 2D entre filas.':' PVGIS no se ha consultado para estas coordenadas; la separación se calcula con geometría solar local.';
+ const tzInfo=$('timeMode').value==='civil'?`Las horas de entrada son oficiales locales. Se convierten a hora solar verdadera con longitud ${lon.toFixed(5)}°, ecuación del tiempo y UTC${tz>=0?'+':''}${tz}${$('dst').checked?' (horario de verano automático)':''}.`:'Las horas introducidas ya son hora solar verdadera; la longitud no interviene en la posición solar y se conserva para conversión si se cambia a hora civil.';
+ $('solarOut').innerHTML=`<div class="good"><b>Separación libre recomendada: ${gap.toFixed(2)} m</b><br>${safeText(modeText)}.<br>Paso entre filas (proyección horizontal): ${pitch.toFixed(2)} m · huella horizontal del módulo: ${footprint.toFixed(2)} m.</div>${mismatch}<div class="stats"><div class="stat"><div class="num">${gap.toFixed(2)} m</div><small>Separación libre elegida</small></div><div class="stat"><div class="num">${worstNo.maxNoShade.gap.toFixed(2)} m</div><small>Separación para 0 % de sombra</small></div><div class="stat"><div class="num">${(worstShade.fraction*100).toFixed(1)} %</div><small>Peor sombra con separación elegida</small></div><div class="stat"><div class="num">${rowNormal.toFixed(0)}°</div><small>Dirección hacia la fila siguiente</small></div></div><p><b>Mes crítico sin sombras:</b> ${months[worstNo.m]}, a las ${critTime} (${solarTime} hora solar; ${localTime} hora de entrada). Altura solar ${crit.sun?crit.sun.altitude.toFixed(1)+'°':'—'} y azimut solar ${crit.sun?crit.sun.azimuth.toFixed(1)+'°':'—'}.</p><p class="mutedbox">${compactInfo} ${tzInfo}${pvgisInfo} Se ha muestreado cada ${step} minutos, incluyendo los extremos del horario.</p><h3>Comparación mensual</h3><canvas id="monthChart" width="760" height="250" aria-label="Comparación de separación mensual sin sombras y separación elegida"></canvas><div class="table-wrap"><table><thead><tr><th>Mes</th><th>0 % sombra (m)</th><th>Elegida (m)</th><th>Sombra peor caso</th><th>Hora crítica</th><th>Altura solar</th><th>Azimut solar</th></tr></thead><tbody>${tableRows}</tbody></table></div><p class="mutedbox">La altura y el azimut de la tabla corresponden al instante de mayor separación requerida para eliminar sombras en ese mes. El azimut solar se mide desde el norte geográfico, en sentido horario.</p>`;
+ drawChart(monthly,gap);updateRowGeometry();return gap;
+}
+$('calc').onclick=calcSolar;
+$('mode').onchange=()=>{$('toleranceWrap').classList.toggle('hidden',$('mode').value!=='compact')};
+$('timeMode').onchange=()=>{$('timeHelp').textContent=$('timeMode').value==='solar'?'Se analizarán las horas solares verdaderas indicadas. En este modo la longitud no cambia la posición solar; se utiliza si eliges hora oficial local.':'Se analizarán las horas oficiales locales indicadas. Se convertirán a hora solar usando longitud, ecuación del tiempo y huso horario; el horario de verano europeo puede aplicarse automáticamente.'};
+async function queryPVGIS(){
+ const lat=v('lat'),lon=v('lon'),status=$('pvgisStatus');
+ if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){status.innerHTML='<b>Coordenadas no válidas.</b> Introduce latitud entre −90 y 90 y longitud entre −180 y 180.';return;}
+ status.textContent='Consultando el servicio oficial PVGIS del Centro Común de Investigación de la Comisión Europea…';
+ const url=`https://re.jrc.ec.europa.eu/api/v5_3/printhorizon?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&outputformat=json`;
+ try{
+  const response=await fetch(url,{headers:{Accept:'application/json'}});
+  if(!response.ok)throw new Error(`PVGIS respondió HTTP ${response.status}`);
+  const data=await response.json();
+  const profile=data?.outputs?.horizon_profile??data?.horizon_profile??data?.outputs?.['Horizon profile']??null;
+  const elevation=data?.inputs?.location?.elevation??data?.outputs?.elevation??data?.elevation??null;
+  let minH=null,maxH=null;
+  if(Array.isArray(profile)&&profile.length){const vals=profile.map(x=>Array.isArray(x)?Number(x[1]):Number(x)).filter(Number.isFinite);if(vals.length){minH=Math.min(...vals);maxH=Math.max(...vals);}}
+  pvgisData={lat,lon,elevation,profile,minH,maxH,queriedAt:new Date().toISOString(),raw:data};
+  const elevTxt=Number.isFinite(Number(elevation))?`${Number(elevation).toFixed(0)} m sobre el nivel del mar`:'altitud no devuelta por este endpoint';
+  const horizonTxt=minH!==null?`Perfil de horizonte recibido (${profile.length} direcciones; altura ${minH.toFixed(1)}°–${maxH.toFixed(1)}°).`:'PVGIS respondió, pero no se pudo interpretar el perfil de horizonte en el formato recibido.';
+  status.innerHTML=`<b>PVGIS consultado correctamente.</b><br>Coordenadas: ${lat.toFixed(5)}°, ${lon.toFixed(5)}° · Altitud: ${elevTxt}.<br>${safeText(horizonTxt)}<br><small>Fuente: JRC-PVGIS 5.3 · ${new Date().toLocaleString('es-ES')}</small>`;
+ }catch(err){pvgisData=null;status.innerHTML=`<b>No se pudo consultar PVGIS.</b><br>${safeText(err.message)}. Comprueba la conexión y vuelve a intentarlo. Las coordenadas siguen disponibles para el cálculo geométrico local.`;}
+}
+
+function findPVGISValue(obj,keys){
+ if(!obj||typeof obj!=='object')return null;
+ for(const [k,val] of Object.entries(obj)){
+  if(keys.includes(k.toLowerCase())&&Number.isFinite(Number(val)))return Number(val);
+ }
+ for(const val of Object.values(obj)){const found=findPVGISValue(val,keys);if(found!==null)return found;}
+ return null;
+}
+async function pvgisOptimal(){
+ const lat=v('lat'),lon=v('lon'),out=$('pvgisOptimalOut');
+ if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){out.textContent='Introduce coordenadas válidas antes de solicitar el óptimo.';return;}
+ const aspect=((norm(v('faceAz'))-180+540)%360)-180;
+ const mount=$('pvgisMount').value;
+ out.textContent='Solicitando a PVGIS la inclinación óptima anual y la orientación/inclinación óptimas…';
+ const makeUrl=(extra)=>{
+  const q=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:mount,outputformat:'json',...extra});
+  return `https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?${q.toString()}`;
+ };
+ try{
+  const [tiltResp,bothResp]=await Promise.all([
+   fetch(makeUrl({optimalinclination:'1',aspect:String(aspect)}),{headers:{Accept:'application/json'}}),
+   fetch(makeUrl({optimalangles:'1'}),{headers:{Accept:'application/json'}})
+  ]);
+  if(!tiltResp.ok||!bothResp.ok)throw new Error(`PVGIS respondió HTTP ${!tiltResp.ok?tiltResp.status:bothResp.status}`);
+  const [tiltData,bothData]=await Promise.all([tiltResp.json(),bothResp.json()]);
+  const tilt=findPVGISValue(tiltData,['slope','angle','inclination']);
+  const bothTilt=findPVGISValue(bothData,['slope','angle','inclination']);
+  const aspectPV=findPVGISValue(bothData,['azimuth','aspect']);
+  if(tilt===null&&bothTilt===null)throw new Error('PVGIS respondió, pero no se identificaron los campos de inclinación óptima en el JSON.');
+  const compass=aspectPV===null?null:((180+aspectPV)%360+360)%360;
+  const fmt=x=>x===null?'No devuelto':`${x.toFixed(1)}°`;
+  out.innerHTML=`<b>Resultados oficiales PVGIS 5.3 · ${lat.toFixed(5)}°, ${lon.toFixed(5)}°</b><div class="stats"><div class="stat"><div class="num">${fmt(tilt)}</div><small>Inclinación óptima anual, conservando el azimut actual (${norm(v('faceAz')).toFixed(0)}°)</small></div><div class="stat"><div class="num">${fmt(bothTilt)}</div><small>Inclinación óptima conjunta</small></div><div class="stat"><div class="num">${fmt(aspectPV)}</div><small>Azimut PVGIS óptimo (0° sur, +90° oeste, −90° este)</small></div><div class="stat"><div class="num">${fmt(compass)}</div><small>Orientación equivalente desde norte geográfico</small></div></div><p>Montaje: ${mount==='free'?'estructura libre':'integrado en edificio'}. PVGIS optimiza la producción anual con datos meteorológicos de su base de radiación; el cálculo de sombras entre filas sigue siendo independiente.</p><div class="inline"><button type="button" id="applyPvgisTilt" ${tilt===null?'disabled':''}>Aplicar inclinación óptima</button><button type="button" id="applyPvgisBoth" ${bothTilt===null?'disabled':''}>Aplicar inclinación y orientación óptimas</button></div><small>Fuente: Comisión Europea, JRC-PVGIS 5.3 · PVcalc. Supuesto de cálculo: 1 kWp y pérdidas del 14 %; estos valores auxiliares no alteran la búsqueda geométrica de ángulos óptimos.</small>`;
+  if(tilt!==null)$('applyPvgisTilt').onclick=()=>{$('tilt').value=tilt.toFixed(1);calcSolar();};
+  if(bothTilt!==null)$('applyPvgisBoth').onclick=()=>{$('tilt').value=bothTilt.toFixed(1);if(compass!==null)$('faceAz').value=compass.toFixed(1);updateRowGeometry();calcSolar();};
+ }catch(err){out.innerHTML=`<b>No se pudo obtener el óptimo de PVGIS.</b><br>${safeText(err.message)}. Revisa conexión, coordenadas y disponibilidad del servicio. No se sustituye por una estimación local inventada.`;}
+}
+$('pvgisOptimal').onclick=pvgisOptimal;
+
+$('pvgisLookup').onclick=queryPVGIS;
+$('gpsLocation').onclick=()=>{
+ const status=$('pvgisStatus');
+ if(!navigator.geolocation){status.textContent='Este navegador no ofrece geolocalización.';return;}
+ status.textContent='Solicitando permiso de ubicación al móvil…';
+ navigator.geolocation.getCurrentPosition(async pos=>{
+  $('lat').value=pos.coords.latitude.toFixed(6);$('lon').value=pos.coords.longitude.toFixed(6);$('place').value='Ubicación GPS del dispositivo';$('preset').value='manual';
+  status.textContent=`GPS obtenido con precisión aproximada de ${Math.round(pos.coords.accuracy)} m. Consultando PVGIS…`;await queryPVGIS();
+ },err=>{const msgs={1:'Permiso de ubicación denegado.',2:'No se pudo determinar la ubicación.',3:'Se agotó el tiempo de espera.'};status.textContent=(msgs[err.code]||'Error de geolocalización')+' Puedes introducir las coordenadas manualmente.';},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+};
+
+$('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123'}};
+['faceAz','rowAz'].forEach(id=>$(id).addEventListener('input',updateRowGeometry));
+$('pack').onclick=()=>{
+ let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();
+ if(gap===null||!Number.isFinite(gap)||gap<0)return;
+ let rw=v('rw'),rl=v('rl'),mx=v('mx'),my=v('my'),pg=v('pg')/100,tilt=v('tilt');
+ let panelW=$('orient').value==='v'?v('pw'):v('ph'),slopeL=moduleSlopeLength(),footprintDepth=slopeL*Math.cos(rad(tilt));
+ if(footprintDepth<0.05){$('drawing').innerHTML='<div class="warn">La proyección horizontal del panel es demasiado pequeña para generar un plano de filas fiable con esta inclinación.</div>';return}
+ let usableW=rw-2*mx,usableL=rl-2*my;
+ if(usableW<=0||usableL<=0){$('drawing').innerHTML='<div class="warn">Los márgenes dejan una superficie útil nula o negativa.</div>';return}
+ // Separación de paneles solo a lo largo de la fila; hueco solar solo entre filas.
+ let cols=Math.max(0,Math.floor((usableW+pg)/(panelW+pg)));
+ let rows=Math.max(0,Math.floor((usableL+gap)/Math.max(footprintDepth+gap,0.001)));
+ let count=cols*rows;layout={cols,rows,count,gap,panelW,footprintDepth};
+ let svgW=360,svgH=Math.max(140,Math.min(300,svgW*rl/Math.max(rw,.1))),sx=(svgW-20)/rw,sy=(svgH-20)/rl;
+ let rects='';for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)rects+=`<rect x="${10+(mx+c*(panelW+pg))*sx}" y="${10+(my+r*(footprintDepth+gap))*sy}" width="${panelW*sx*.96}" height="${footprintDepth*sy*.96}" rx="2" fill="#287fa0" stroke="#14516b"/>`;
+ $('drawing').innerHTML=`<p><b>${count} paneles</b> · ${cols} paneles por fila × ${rows} filas · separación libre ${gap.toFixed(2)} m · paso entre filas ${(footprintDepth+gap).toFixed(2)} m</p><svg class="plan" viewBox="0 0 360 ${svgH}" role="img" aria-label="Plano esquemático de distribución"><rect x="10" y="10" width="${rw*sx}" height="${rl*sy}" fill="none" stroke="currentColor" stroke-width="1.5"/>${rects}</svg><small>Plano esquemático en planta. El largo del panel se proyecta horizontalmente con la inclinación introducida.</small>`;
+ $('nPanels').textContent=count;$('kwp').textContent=(count*v('wp')/1000).toFixed(2)+' kWp';$('area').textContent=(count*v('pw')*v('ph')).toFixed(1)+' m²';$('rows').textContent=rows;
+ $('details').innerHTML=`<p>Cubierta: ${rw.toFixed(2)} × ${rl.toFixed(2)} m. Panel: ${v('pw').toFixed(3)} × ${v('ph').toFixed(3)} m, ${v('wp')} Wp.</p><p>Separación libre entre filas: ${gap.toFixed(2)} m. Paso de filas: ${(footprintDepth+gap).toFixed(2)} m.</p><p>Ubicación: ${safeText($('place').value)} (${v('lat').toFixed(5)}°, ${v('lon').toFixed(5)}°). Inclinación: ${tilt}°; azimut cara: ${norm(v('faceAz'))}°; eje filas: ${norm(v('rowAz'))}°.</p>`;
+};
+$('csv').onclick=()=>{
+ if(!lastSolar&&!layout){alert('Calcula las sombras o genera primero la distribución.');return}
+ let lines=['Tipo,Mes,Separacion_sin_sombra_m,Separacion_elegida_m,Sombra_peor_caso_pct,Hora_critica,Altura_solar_deg,Azimut_solar_deg'];
+ if(lastSolar)lastSolar.rows.forEach(r=>lines.push(['Solar',months[r.m],r.maxNoShade.gap.toFixed(3),lastSolar.gap.toFixed(3),(r.chosenShade*100).toFixed(2),timeLabel(r.maxNoShade,lastSolar.settings.timeMode),r.maxNoShade.sun.altitude.toFixed(2),r.maxNoShade.sun.azimuth.toFixed(2)].join(',')));
+ if(layout)lines.push(['Distribucion','', '',layout.gap.toFixed(3),'','','',''].join(','),`Paneles,${layout.count}` ,`Filas,${layout.rows}`,`Columnas,${layout.cols}`,`Potencia_kWp,${(layout.count*v('wp')/1000).toFixed(2)}`);
+ const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solar-roof-planner-sombras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+updateRowGeometry();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+window.showTab=showTab;
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+SOLAR ROOF PLANNER v2.0 - MEJORA DE SOMBRAS ENTRE FILAS
+===================================================
+
+CONTENIDO
+- index.html: aplicación web instalable (PWA).
+- manifest.webmanifest: nombre, icono y modo de instalación.
+- sw.js: caché para uso sin conexión después de la primera carga.
+- icon.svg: icono de la aplicación.
+
+NOVEDADES DE ESTA VERSIÓN
+1. Posición solar para el día 21 de cada mes, desde la hora inicial hasta la final.
+2. Altura y azimut solar calculados con la aproximación NOAA de declinación solar y ecuación del tiempo.
+3. Análisis de sombras proyectadas entre filas, con azimut de la cara del módulo, azimut del eje de filas e inclinación.
+4. Modos: separación para evitar sombras en todo el intervalo; o separación mínima con un porcentaje máximo de longitud de módulo sombreada.
+5. Selector de todo el año, invierno, verano o mes; año y resolución de muestreo ajustables.
+6. Entrada en hora solar verdadera o en hora oficial local. En hora civil se convierte con longitud, ecuación del tiempo y huso horario; horario de verano europeo automático.
+7. Tabla y gráfico mensual, cálculo de separación crítica, hora/altura/azimut del Sol, exportación CSV y distribución esquemática.
+
+REFERENCIA GEOGRÁFICA
+La opción inicial usa como referencia la estación geodésica IGN ALAC en Alicante: aproximadamente
+latitud 38.33892 grados norte y longitud 0.48123 grados oeste (longitud decimal -0.48123).
+No representa necesariamente la parcela del usuario. Para un proyecto real deben introducirse las coordenadas del emplazamiento.
+
+MODELO SOLAR Y GEOMÉTRICO
+- La posición solar utiliza la aproximación NOAA: ángulo horario a partir de la hora solar verdadera; declinación y ecuación del tiempo a partir del ángulo fraccional anual.
+- El azimut se expresa desde el norte geográfico, en sentido horario.
+- El modelo de filas es bidimensional en la sección perpendicular al eje de filas. Supone filas rectas, paralelas, módulos iguales, inclinación fija y plano horizontal de referencia.
+- La dirección hacia la fila siguiente se selecciona como la normal del eje de filas más próxima a la parte posterior de los módulos.
+- Si L es la longitud del módulo medida sobre la pendiente, beta la inclinación, y q la proyección de la dirección de sombra sobre la dirección hacia la fila siguiente por unidad de caída vertical, la separación libre para no sombrear es:
+      g0 = L * sin(beta) * q
+  cuando q es positiva; si la sombra no avanza hacia la fila siguiente, q vale cero.
+- Para admitir una fracción geométrica sombreada f, la separación mínima aproximada se calcula como:
+      g(f) = max(0, L * ((1-f) * q * sin(beta) - f * cos(beta)))
+  y se toma el máximo de todas las muestras de los días/horas seleccionados.
+- La separación se redondea hacia arriba al centímetro para no quedar por debajo del valor calculado.
+- Se muestrea por defecto cada 5 minutos. Es una discretización temporal, no una demostración matemática continua entre muestras.
+- En hora civil, la hora solar verdadera se obtiene con la longitud (este positiva), la ecuación del tiempo y el huso horario. En hora solar introducida directamente, la longitud no interviene en la posición del Sol.
+
+CRITERIO DE DISEÑO
+- "Sin sombras": la separación libre evita que la sombra geométrica de una fila alcance la siguiente durante todas las muestras del periodo y horario elegidos.
+- "Compacto": se calcula la menor separación que mantiene la longitud sombreada del módulo por debajo del porcentaje indicado en el peor instante. Ese porcentaje es una tolerancia geométrica, NO una estimación directa de pérdida de potencia.
+
+LIMITACIONES IMPORTANTES
+- No calcula sombras de edificios, árboles, chimeneas, montañas ni horizonte local.
+- No modela módulos finitos en los extremos de fila, marcos, soportes, desniveles, inclinación de la propia cubierta, estructuras complejas ni varias orientaciones.
+- La hipótesis de filas requiere que el eje de filas sea aproximadamente perpendicular al azimut de la cara del módulo. La aplicación muestra un aviso si no lo es.
+- El esquema de distribución supone cubierta rectangular, filas paralelas al lado largo y dimensiones de cubierta en planta horizontal. No es un replanteo constructivo.
+- El sombreado geométrico no se traduce linealmente en pérdida de energía: intervienen células, diodos bypass, conexiones, MPPT, strings y radiación difusa.
+- La aproximación NOAA es adecuada para planificación preliminar, no para certificación ni cálculo de precisión de ingeniería. No sustituye PVsyst, PV*SOL, herramientas de topografía ni un estudio profesional.
+- No calcula estructura, viento, cargas, anclajes, normativa ni diseño eléctrico.
+
+INSTALACIÓN
+Para instalar como aplicación en Android, publica la carpeta Solar_Roof_Planner en un alojamiento HTTPS (por ejemplo, GitHub Pages o Netlify). Después abre la URL con Chrome y usa "Instalar aplicación" o "Añadir a pantalla de inicio". Abrir el HTML directamente desde el ZIP no permite instalar la PWA.
+
+
+MEJORA V3 — UBICACIÓN Y PVGIS
+- «Usar ubicación del móvil» solicita permiso al navegador, lee GPS y carga latitud/longitud.
+- «Consultar PVGIS para estas coordenadas» consulta el endpoint JRC-PVGIS 5.3 printhorizon.
+- Muestra altitud cuando la respuesta la proporciona y el perfil de horizonte recibido.
+- Si falla la conexión/API, conserva las coordenadas y permite seguir con el cálculo geométrico.
+- El perfil de horizonte se muestra como información topográfica complementaria; no se mezcla con el cálculo de sombra entre filas.
+- Requiere HTTPS para geolocalización (GitHub Pages cumple este requisito).
+- PVGIS no geocodifica por sí mismo direcciones postales; utiliza GPS o introduce coordenadas manualmente.
+
+API: https://re.jrc.ec.europa.eu/api/v5_3/printhorizon
+Documentación JRC: https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en
+
+
+MEJORA V4 — OPTIMIZACIÓN DE ÁNGULOS PVGIS
+- Botón «Calcular inclinación óptima PVGIS».
+- Consulta PVcalc de PVGIS 5.3 con optimalinclination=1 para optimizar inclinación manteniendo el azimut introducido.
+- Segunda consulta con optimalangles=1 para optimizar conjuntamente inclinación y orientación.
+- Permite elegir montaje libre o integrado en edificio.
+- Muestra el azimut en convención PVGIS (0° sur, +90° oeste, −90° este) y su conversión a brújula (0° norte, sentido horario).
+- Permite aplicar los ángulos devueltos a la geometría y recalcular las sombras entre filas.
+- Usa parámetros auxiliares constantes de 1 kWp y 14 % de pérdidas; PVGIS requiere esos campos para PVcalc y el porcentaje uniforme de pérdidas no determina el óptimo geométrico.
+- El óptimo es anual para ángulos fijos; no significa que sea el mejor ángulo para cada mes ni que minimice sombras entre filas.
+Fuente API JRC: https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en
