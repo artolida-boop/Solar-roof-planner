@@ -76,3 +76,5 @@ MEJORA V4 — OPTIMIZACIÓN DE ÁNGULOS PVGIS
 - Usa parámetros auxiliares constantes de 1 kWp y 14 % de pérdidas; PVGIS requiere esos campos para PVcalc y el porcentaje uniforme de pérdidas no determina el óptimo geométrico.
 - El óptimo es anual para ángulos fijos; no significa que sea el mejor ángulo para cada mes ni que minimice sombras entre filas.
 Fuente API JRC: https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en
+
+VERSIÓN CORREGIDA: la interfaz muestra ahora 4.0 y la caché utiliza solar-roof-planner-v4.
