@@ -78,3 +78,10 @@ MEJORA V4 — OPTIMIZACIÓN DE ÁNGULOS PVGIS
 Fuente API JRC: https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/using-pvgis-5/api-non-interactive-service_en
 
 VERSIÓN CORREGIDA: la interfaz muestra ahora 4.0 y la caché utiliza solar-roof-planner-v4.
+
+
+MEJORA INSTALACIÓN ANDROID / ICONO
+- Se añaden icon-192.png e icon-512.png para compatibilidad de instalación PWA en Chrome Android.
+- El manifiesto declara iconos PNG de 192 y 512 px, incluido propósito maskable.
+- Se actualiza la caché del service worker para distribuir estos iconos.
+- Tras subir todos los archivos, espera la publicación, recarga la web y vuelve a probar Instalar aplicación.
