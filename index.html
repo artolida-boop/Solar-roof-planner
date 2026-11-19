@@ -353,7 +353,7 @@ $('refreshPvgisCoords').onclick=refreshPvgisCoordinates;
 $('openPvgis').onclick=()=>{
  if(!refreshPvgisCoordinates())return;
  const lat=v('lat'),lon=v('lon');
- const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(v('tilt')||30),aspect:String(((norm(v('faceAz')||180)-180+540)%360)-180),outputformat:'browser'});
+ const params=new URLSearchParams({lat:String(lat),lon:String(lon),peakpower:'1',loss:'14',pvtechchoice:'crystSi',mountingplace:'free',angle:String(v('tilt')||30),aspect:String(((norm(v('faceAz')||180)-180+540)%360)-180),outputformat:'json',browser:'0'});
  const url='https://re.jrc.ec.europa.eu/api/v5_3/PVcalc?'+params.toString();
  window.open(url,'_blank','noopener');
 };
