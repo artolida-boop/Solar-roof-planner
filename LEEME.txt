@@ -1,61 +1,61 @@
-FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.2
-Edición premium · Identidad gráfica rock rojo/dorado · Estudio fotovoltaico preliminar
+FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.3
+Auditoría y correcciones de lógica económica y exportación
 
-CONTENIDO DEL PAQUETE
+CONTENIDO
 - index.html: aplicación completa.
-- manifest.webmanifest: configuración de instalación PWA.
-- sw.js: service worker y caché offline.
-- icon.svg: icono de la aplicación.
+- manifest.webmanifest: nombre e instalación PWA.
+- sw.js: service worker con caché nueva para esta versión.
+- icon.svg: icono vectorial con letras rojas.
 
-MEJORAS DE LA VERSIÓN 3.9.2
-- Renovación visual premium: tarjetas, navegación adaptable, controles, jerarquía visual y diseño optimizado para móvil.
-- Se conservan los módulos de ubicación y PVGIS, tejado e inclinación, distribución de paneles, geometría solar, resultados, energía y amortización e informe técnico-económico.
-- Corrección del importador OMIE MARGINALPDBC: lectura del periodo correcto y del precio MarginalES (España), no MarginalPT (Portugal).
-- Conversión del precio español de €/MWh a €/kWh y agrupación de periodos de 15 minutos en la gráfica horaria. Se contemplan jornadas de 92 y 100 periodos por cambio horario.
-- El libro Excel incorpora fecha, número de periodo, precio español en €/MWh y precio convertido en €/kWh.
-- El informe y el Excel utilizan una amortización estimada coherente con el incremento anual del precio introducido y el horizonte de 25 años.
-- Se actualiza la identificación de versión y la caché PWA para forzar la descarga de los archivos nuevos.
+CAMBIOS RESPECTO A 3.9.2
+1. Eliminada la función de medición de azimut mediante la brújula del móvil. Se mantiene la introducción manual de orientación; el GPS solo proporciona ubicación, no orientación del tejado.
+2. Corregida la tarifa de tres periodos: el precio medio se calcula ponderando punta, llano y valle por los porcentajes de consumo introducidos por el usuario. Los porcentajes deben sumar 100 %.
+3. Los valores iniciales 30/30/40 son solo una distribución de ejemplo editable; deben sustituirse por el reparto real de la factura o distribuidora.
+4. La amortización y el informe utilizan la potencia real calculada de la distribución cuando existe, en lugar de usar siempre la potencia objetivo.
+5. Corregidas las referencias de las fórmulas del flujo acumulado de la hoja Excel de amortización.
+6. La hoja Producción mensual ya no reparte artificialmente la producción anual entre doce meses. Queda sin valores y explica que falta importar una serie mensual real de PVGIS.
+7. Se actualiza la versión visible a 3.9.3, la caché del service worker y el color de marca del encabezado/navegador a rojo.
 
 FUNCIONES CONSERVADAS
-1. Ubicación manual o GPS y preparación de coordenadas para copiar en la herramienta oficial PVGIS.
-2. Dimensiones de cubierta, márgenes, paneles, potencia objetivo e inclinación diferenciada para montaje coplanar o con estructura.
-3. Cálculo geométrico de separación entre filas y análisis simplificado de sombras.
-4. Distribución esquemática de módulos y cálculo de potencia instalada real.
-5. Resumen de resultados y exportación CSV/Excel.
-6. Consulta/importación de precios OMIE, comparación gráfica con tarifa de factura y estimación de autoconsumo, excedentes, ahorro y amortización.
-7. Informe técnico y económico con autor «Arturo Ferrándiz Sánchez», exportación a PDF mediante impresión del navegador y libro Excel .xlsx con diez hojas.
-8. Instalación como aplicación web progresiva (PWA) y caché offline básica.
+- Ubicación manual o GPS y copia de coordenadas para consultar PVGIS externamente.
+- Dimensiones de cubierta, inclinación coplanar/estructura, potencia objetivo y distribución de paneles.
+- Cálculo geométrico simplificado de separación entre filas y sombras.
+- Consulta/importación de OMIE, comparación con tarifa de factura y estimación de autoconsumo, excedentes y amortización.
+- Informe preliminar con autor «Arturo Ferrándiz Sánchez» y exportación Excel .xlsx.
+- Exportación PDF mediante la función de impresión del navegador: elegir «Guardar como PDF».
+- Instalación PWA y caché offline básica.
 
-OMIE: FORMATO Y CRITERIO
-El fichero MARGINALPDBC contiene los campos Año; Mes; Día; Periodo; MarginalPT; MarginalES. La aplicación utiliza MarginalES, correspondiente a España. Los precios se reciben en €/MWh y se convierten a €/kWh dividiendo entre 1.000. Desde octubre de 2025 pueden existir 96 periodos de 15 minutos en un día ordinario. La disponibilidad de descarga directa depende del acceso del navegador; si falla, descarga el fichero oficial de OMIE e impórtalo manualmente.
+CRITERIOS ECONÓMICOS IMPORTANTES
+- La media punta/llano/valle depende de los porcentajes de consumo introducidos. Si no se conocen, no debe interpretarse el valor inicial como tarifa real.
+- El ahorro por autoconsumo sigue siendo una estimación anual. La generación solar y el consumo no coinciden necesariamente hora a hora; para un cálculo preciso hace falta una curva horaria de consumo y producción.
+- OMIE es precio mayorista, no precio final de factura.
+- La amortización es simple y orientativa; no incluye financiación, mantenimiento, degradación, sustituciones, impuestos ni ayudas.
 
-INFORME Y AMORTIZACIÓN
-- El PDF se obtiene desde «Generar PDF / Imprimir» y seleccionando «Guardar como PDF» en el diálogo del navegador o del móvil.
-- El Excel es un libro .xlsx generado localmente, con hojas de presentación, cubierta, sombras, equipos, producción, consumo, OMIE, tarifa, amortización e hipótesis.
-- La producción mensual se distribuye de forma uniforme a partir del rendimiento anual introducido cuando no se dispone de una simulación mensual PVGIS. Se etiqueta expresamente como estimación.
-- La amortización es orientativa. Depende de los datos de consumo, autoconsumo, tarifa, excedentes, inversión y evolución de precios introducidos.
-- Autor del estudio: Arturo Ferrándiz Sánchez. El autor no se identifica como instalador ni como técnico certificador.
+PRODUCCIÓN MENSUAL
+Esta versión no incorpora una importación de serie mensual PVGIS. Por ello no inventa doce valores mensuales a partir de una producción anual. La producción anual sigue siendo una estimación basada en kWp por rendimiento específico introducido.
 
-INSTALACIÓN / ACTUALIZACIÓN EN GITHUB PAGES
+ACTUALIZACIÓN EN GITHUB PAGES
 1. Descomprime el ZIP.
 2. Sube los cuatro archivos de la raíz (index.html, manifest.webmanifest, sw.js e icon.svg) a la raíz del repositorio, sustituyendo los anteriores.
 3. Espera a que GitHub Pages publique los cambios.
-4. Abre la web y comprueba que el encabezado indica Versión 3.9.2.
-5. Si ya estaba instalada como PWA, cierra la aplicación por completo y vuelve a abrirla con conexión para que descargue la nueva caché.
+4. Comprueba que el encabezado indica Versión 3.9.3.
+5. Si ya estaba instalada como PWA, cierra la aplicación por completo y vuelve a abrirla con conexión para descargar la caché nueva.
 
-VALIDACIÓN REALIZADA EN ESTA ENTREGA
-- Sintaxis JavaScript comprobada con Node.js.
-- Formato OMIE probado con registros de ejemplo: se verifica que se utiliza el sexto campo (MarginalES) y el periodo del cuarto campo.
-- 114 identificadores HTML comprobados, sin duplicados.
-- Manifest JSON válido y paquete ZIP comprobado.
+VALIDACIONES REALIZADAS EN ESTA ENTREGA
+- Sintaxis del JavaScript comprobada con Node.js.
+- Sin identificadores HTML duplicados.
+- Referencias estáticas a elementos HTML comprobadas; «monthChart» es opcional y se crea tras ejecutar el cálculo solar.
+- Manifest JSON válido.
+- Referencias a la antigua brújula móvil eliminadas.
+- Confirmado que la exportación ya no genera el falso reparto anual/12.
+- Revisada y corregida la numeración de filas de las fórmulas de amortización.
+- No se ha podido completar una prueba integral interactiva en navegador Android ni abrir el PDF/XLSX generado en una aplicación real. Por tanto, estas exportaciones requieren una prueba final en el dispositivo.
 - No se ha publicado esta versión en GitHub Pages desde aquí.
-- No se ha completado una prueba integral en navegador Android ni se ha validado el PDF/Excel abriéndolos desde un dispositivo real.
 
 ALCANCE Y LIMITACIONES
-La aplicación ofrece un estudio preliminar. La geometría de sombras es simplificada y no modela todos los obstáculos, el relieve ni las pérdidas reales. La producción no sustituye una simulación PVGIS mensual cuando no se ha importado. La amortización no incorpora financiación, mantenimiento, degradación, sustitución de equipos, impuestos ni ayudas. El informe no es proyecto técnico visado, memoria reglamentaria, certificado de instalación ni garantía de producción.
+La aplicación ofrece un estudio preliminar. La geometría de sombras es simplificada y no modela todos los obstáculos, relieve ni pérdidas reales. El resultado no sustituye un proyecto técnico, memoria reglamentaria, certificado de instalación ni garantía de producción.
 
-IDENTIDAD GRÁFICA 3.9.2
-- Nombre definitivo de la aplicación: FaraEladio Roof Planner Design.
-- Nombre corto mostrado bajo el icono Android: FaraEladio.
-- Logotipo vectorial propio: casa solar, sol y letras hard-rock rojas con contorno dorado y rayo eléctrico. Inspiración estética de rock clásico, sin utilizar el logotipo oficial de ninguna banda.
-- Encabezado de la aplicación actualizado con la misma identidad tipográfica.
+IDENTIDAD
+Nombre: FaraEladio Roof Planner Design.
+Nombre corto PWA: FaraEladio.
+Autor del estudio: Arturo Ferrándiz Sánchez.
