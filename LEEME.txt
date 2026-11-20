@@ -1,4 +1,4 @@
-SOLAR ROOF PLANNER — PAQUETE 3.5.6 — PVGIS CON COORDENADAS
+SOLAR ROOF PLANNER — PAQUETE 3.5.9 — INCLINACIÓN EN TEJADO Y PWA
 
 Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
 - index.html
@@ -74,3 +74,10 @@ El azimut de la cara de los módulos se puede introducir manualmente o medir con
 
 
 Versión 3.5.8: la pestaña inicial se centra en ubicación y acceso a PVGIS. Se ocultan los controles de sombras y azimut en esta pestaña. Se elimina la consulta API que no funcionaba y se añade un campo de coordenadas decimales con botón para copiarlas y pegarlas en la herramienta oficial interactiva de PVGIS. La herramienta PVGIS permite configurar allí los ángulos y parámetros de cálculo.
+
+
+VERSIÓN 3.5.9 — CORRECCIÓN DE INTERFAZ
+- Los controles de inclinación coplanar, inclinación con estructura y tipo de montaje se muestran ahora en la pestaña «Tejado».
+- Se conservan los mismos identificadores y la lógica existente que sincroniza el ángulo seleccionado con los cálculos y el enlace de referencia a PVGIS.
+- Se incrementa la caché del service worker a v19 para que las instalaciones existentes descarguen la nueva versión.
+- No se ha cambiado el modelo geométrico de sombras ni las fórmulas fotovoltaicas.

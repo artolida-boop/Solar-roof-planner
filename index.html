@@ -37,7 +37,7 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.8 · Ubicación y acceso a PVGIS</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.9 · Inclinación de cubierta y PWA</div></div></header>
 <nav>
 <button class="active" data-tab="solar">Ubicación y PVGIS</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
 </nav>
@@ -56,6 +56,12 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <label>Potencia objetivo de la instalación (kWp)<input id="targetKwp" type="number" value="5" min="0.1" step="0.1"></label>
 <label>Separación entre paneles en fila (cm)<input id="pg" type="number" value="2" min="0" step="0.5"></label>
 </div></div>
+
+<div class="card"><h2>Inclinación de los módulos</h2><p class="mutedbox">Indica el ángulo real de la cubierta para montaje coplanar o el ángulo de los módulos si utilizas estructura. El ángulo seleccionado se aplicará a los cálculos y a la referencia de PVGIS.</p>
+<div class="card" style="margin-top:12px"><h3>Montaje coplanar</h3><p class="muted">Módulos colocados paralelos a la cubierta. Introduce aquí la inclinación óptima o real de esta instalación.</p><label>Ángulo óptimo coplanar (°)<input id="tiltCoplanar" type="number" value="30" min="0" max="90" step="1"></label></div>
+<div class="card" style="margin-top:12px"><h3>Montaje con estructura</h3><p class="muted">Módulos elevados sobre estructura. Puedes introducir una inclinación distinta de la coplanar.</p><label>Ángulo óptimo con estructura (°)<input id="tiltStructure" type="number" value="30" min="0" max="90" step="1"></label></div>
+<div class="card" style="margin-top:12px"><h3>Configuración del estudio</h3><label>Tipo de montaje que se analizará<select id="mountType"><option value="coplanar">Coplanar</option><option value="structure">Con estructura</option></select></label><p class="mutedbox">El cálculo de sombras, la distribución y el enlace a PVGIS utilizarán el ángulo del tipo de montaje seleccionado. Los dos ángulos se guardan por separado.</p><input id="tilt" type="hidden" value="30"></div>
+</div>
 <button class="primary" onclick="showTab('solar')">Continuar al estudio solar →</button>
 </section>
 <section id="solar" class="active">
@@ -87,9 +93,9 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div id="azimuthStatus" class="notice" aria-live="polite">El valor inicial de 180° es una referencia sur, no una medición automática. El GPS obtiene la ubicación, pero no la orientación del tejado. Puedes introducir el azimut o medirlo con la brújula del móvil.</div>
 <label>Azimut del eje de las filas (°)<input id="rowAz" type="number" value="90" min="0" max="359.99" step="1"></label>
 </div>
-<div class="card" style="margin-top:12px"><h3>Montaje coplanar</h3><p class="muted">Módulos colocados paralelos a la cubierta. Introduce aquí la inclinación óptima o real de esta instalación.</p><label>Ángulo óptimo coplanar (°)<input id="tiltCoplanar" type="number" value="30" min="0" max="90" step="1"></label></div>
-<div class="card" style="margin-top:12px"><h3>Montaje con estructura</h3><p class="muted">Módulos elevados sobre estructura. Puedes introducir una inclinación distinta de la coplanar.</p><label>Ángulo óptimo con estructura (°)<input id="tiltStructure" type="number" value="30" min="0" max="90" step="1"></label></div>
-<div class="card" style="margin-top:12px"><h3>Configuración del estudio</h3><label>Tipo de montaje que se analizará<select id="mountType"><option value="coplanar">Coplanar</option><option value="structure">Con estructura</option></select></label><p class="mutedbox">El cálculo de sombras, la distribución y el enlace a PVGIS utilizarán el ángulo del tipo de montaje seleccionado. Los dos ángulos se guardan por separado.</p><input id="tilt" type="hidden" value="30"></div>
+
+
+
 <div id="rowGeometry" class="mutedbox">Azimut medido desde el norte geográfico, en sentido horario. El eje de filas debería ser perpendicular al azimut de la cara del módulo.</div></div>
 <div class="card legacy-hidden"><h2>Periodo y horario de análisis</h2><div class="grid">
 <label>Año de referencia<input id="year" type="number" value="2026" min="2000" max="2100" step="1"></label>
