@@ -1,4 +1,4 @@
-FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.0
+FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.1
 Edición premium · Estudio fotovoltaico preliminar
 
 CONTENIDO DEL PAQUETE
@@ -7,7 +7,7 @@ CONTENIDO DEL PAQUETE
 - sw.js: service worker y caché offline.
 - icon.svg: icono de la aplicación.
 
-MEJORAS DE LA VERSIÓN 3.9.0
+MEJORAS DE LA VERSIÓN 3.9.1
 - Renovación visual premium: tarjetas, navegación adaptable, controles, jerarquía visual y diseño optimizado para móvil.
 - Se conservan los módulos de ubicación y PVGIS, tejado e inclinación, distribución de paneles, geometría solar, resultados, energía y amortización e informe técnico-económico.
 - Corrección del importador OMIE MARGINALPDBC: lectura del periodo correcto y del precio MarginalES (España), no MarginalPT (Portugal).
@@ -40,7 +40,7 @@ INSTALACIÓN / ACTUALIZACIÓN EN GITHUB PAGES
 1. Descomprime el ZIP.
 2. Sube los cuatro archivos de la raíz (index.html, manifest.webmanifest, sw.js e icon.svg) a la raíz del repositorio, sustituyendo los anteriores.
 3. Espera a que GitHub Pages publique los cambios.
-4. Abre la web y comprueba que el encabezado indica Versión 3.9.0.
+4. Abre la web y comprueba que el encabezado indica Versión 3.9.1.
 5. Si ya estaba instalada como PWA, cierra la aplicación por completo y vuelve a abrirla con conexión para que descargue la nueva caché.
 
 VALIDACIÓN REALIZADA EN ESTA ENTREGA
