@@ -1,5 +1,5 @@
-FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.0
-Edición premium · Estudio fotovoltaico preliminar
+FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.2
+Edición premium · Identidad gráfica rock rojo/dorado · Estudio fotovoltaico preliminar
 
 CONTENIDO DEL PAQUETE
 - index.html: aplicación completa.
@@ -7,7 +7,7 @@ CONTENIDO DEL PAQUETE
 - sw.js: service worker y caché offline.
 - icon.svg: icono de la aplicación.
 
-MEJORAS DE LA VERSIÓN 3.9.0
+MEJORAS DE LA VERSIÓN 3.9.2
 - Renovación visual premium: tarjetas, navegación adaptable, controles, jerarquía visual y diseño optimizado para móvil.
 - Se conservan los módulos de ubicación y PVGIS, tejado e inclinación, distribución de paneles, geometría solar, resultados, energía y amortización e informe técnico-económico.
 - Corrección del importador OMIE MARGINALPDBC: lectura del periodo correcto y del precio MarginalES (España), no MarginalPT (Portugal).
@@ -40,7 +40,7 @@ INSTALACIÓN / ACTUALIZACIÓN EN GITHUB PAGES
 1. Descomprime el ZIP.
 2. Sube los cuatro archivos de la raíz (index.html, manifest.webmanifest, sw.js e icon.svg) a la raíz del repositorio, sustituyendo los anteriores.
 3. Espera a que GitHub Pages publique los cambios.
-4. Abre la web y comprueba que el encabezado indica Versión 3.9.0.
+4. Abre la web y comprueba que el encabezado indica Versión 3.9.2.
 5. Si ya estaba instalada como PWA, cierra la aplicación por completo y vuelve a abrirla con conexión para que descargue la nueva caché.
 
 VALIDACIÓN REALIZADA EN ESTA ENTREGA
@@ -53,3 +53,9 @@ VALIDACIÓN REALIZADA EN ESTA ENTREGA
 
 ALCANCE Y LIMITACIONES
 La aplicación ofrece un estudio preliminar. La geometría de sombras es simplificada y no modela todos los obstáculos, el relieve ni las pérdidas reales. La producción no sustituye una simulación PVGIS mensual cuando no se ha importado. La amortización no incorpora financiación, mantenimiento, degradación, sustitución de equipos, impuestos ni ayudas. El informe no es proyecto técnico visado, memoria reglamentaria, certificado de instalación ni garantía de producción.
+
+IDENTIDAD GRÁFICA 3.9.2
+- Nombre definitivo de la aplicación: FaraEladio Roof Planner Design.
+- Nombre corto mostrado bajo el icono Android: FaraEladio.
+- Logotipo vectorial propio: casa solar, sol y letras hard-rock rojas con contorno dorado y rayo eléctrico. Inspiración estética de rock clásico, sin utilizar el logotipo oficial de ninguna banda.
+- Encabezado de la aplicación actualizado con la misma identidad tipográfica.
