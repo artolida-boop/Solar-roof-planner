@@ -1,92 +1,55 @@
-SOLAR ROOF PLANNER — PAQUETE 3.5.9 — INCLINACIÓN EN TEJADO Y PWA
+FARAELADIO ROOF PLANNER DESIGN — VERSIÓN 3.9.0
+Edición premium · Estudio fotovoltaico preliminar
 
-Archivos que deben quedar juntos en la raíz del repositorio GitHub Pages:
-- index.html
-- manifest.webmanifest
-- sw.js
-- icon.svg
+CONTENIDO DEL PAQUETE
+- index.html: aplicación completa.
+- manifest.webmanifest: configuración de instalación PWA.
+- sw.js: service worker y caché offline.
+- icon.svg: icono de la aplicación.
 
-CAMBIOS DE ESTA ENTREGA
-- Se incorpora una potencia objetivo de instalación en kWp. La distribución calcula el número entero de paneles necesario según la potencia unitaria seleccionada.
-- La colocación ajusta la última fila para representar exactamente el número de módulos calculado; si la cubierta no tiene capacidad suficiente, informa del máximo instalable y lo representa.
-- El resumen y las exportaciones CSV/Excel distinguen potencia objetivo y potencia instalada resultante.
-- Se corrige la identificación de versión: esta entrega es 3.5.5.
-- Se fuerza la comprobación de actualización del service worker y se versiona la caché para evitar conservar la aplicación antigua instalada.
-- Se añade backtracking geométrico al simulador diario del seguidor solar de un eje horizontal.
-- Se corrige la fórmula de backtracking: la corrección angular se resta del ángulo ideal conforme al método NREL/pvlib para eje horizontal y terreno plano.
-- Se valida que la fecha del seguidor exista realmente (por ejemplo, se rechaza el 31 de febrero).
-- Se aclara la convención de giro positivo mediante la regla de la mano derecha alrededor del eje.
-- Se corrige la validación del campo de separación manual para que no bloquee el cálculo automático si el campo manual está vacío.
-- Se avisa cuando no cabe ningún panel en la cubierta.
-- Se añade exportación Excel compatible (.xls, formato SpreadsheetML) además del CSV y la impresión/guardado en PDF.
-- Se evita interpretar valores nulos de PVGIS como un ángulo de cero grados.
+MEJORAS DE LA VERSIÓN 3.9.0
+- Renovación visual premium: tarjetas, navegación adaptable, controles, jerarquía visual y diseño optimizado para móvil.
+- Se conservan los módulos de ubicación y PVGIS, tejado e inclinación, distribución de paneles, geometría solar, resultados, energía y amortización e informe técnico-económico.
+- Corrección del importador OMIE MARGINALPDBC: lectura del periodo correcto y del precio MarginalES (España), no MarginalPT (Portugal).
+- Conversión del precio español de €/MWh a €/kWh y agrupación de periodos de 15 minutos en la gráfica horaria. Se contemplan jornadas de 92 y 100 periodos por cambio horario.
+- El libro Excel incorpora fecha, número de periodo, precio español en €/MWh y precio convertido en €/kWh.
+- El informe y el Excel utilizan una amortización estimada coherente con el incremento anual del precio introducido y el horizonte de 25 años.
+- Se actualiza la identificación de versión y la caché PWA para forzar la descarga de los archivos nuevos.
 
-FUNCIONES PRESENTES
-- Geometría de cubierta rectangular y distribución esquemática de módulos.
-- Cálculo geométrico 2D de sombras entre filas para los días 21 de los meses seleccionados y el horario indicado.
-- Conversión entre hora solar verdadera y hora civil, con cambio horario europeo.
-- Geolocalización del dispositivo, consulta de horizonte PVGIS y solicitud de ángulos óptimos PVGIS.
-- Exportación CSV, Excel compatible (.xls) e impresión/guardado en PDF.
-- Seguidor solar: azimut del eje configurable, fecha, horario solar o civil, intervalo de 15/30/60 minutos, límite mecánico ±°, ancho de mesa, distancia entre ejes, GCR, backtracking, tabla horaria, gráfica y exportación CSV.
-- Instalación PWA y caché offline básica.
+FUNCIONES CONSERVADAS
+1. Ubicación manual o GPS y preparación de coordenadas para copiar en la herramienta oficial PVGIS.
+2. Dimensiones de cubierta, márgenes, paneles, potencia objetivo e inclinación diferenciada para montaje coplanar o con estructura.
+3. Cálculo geométrico de separación entre filas y análisis simplificado de sombras.
+4. Distribución esquemática de módulos y cálculo de potencia instalada real.
+5. Resumen de resultados y exportación CSV/Excel.
+6. Consulta/importación de precios OMIE, comparación gráfica con tarifa de factura y estimación de autoconsumo, excedentes, ahorro y amortización.
+7. Informe técnico y económico con autor «Arturo Ferrándiz Sánchez», exportación a PDF mediante impresión del navegador y libro Excel .xlsx con diez hojas.
+8. Instalación como aplicación web progresiva (PWA) y caché offline básica.
 
-LIMITACIONES IMPORTANTES
-Esta entrega NO es la versión 4.0 ni incorpora todavía simulación 3D de Google Earth, catálogo comercial actualizado automáticamente, precios horarios OMIE ni un modelo eléctrico/energético completo. El cálculo de sombras es una aproximación geométrica 2D para filas paralelas sobre plano horizontal; no modela edificios, árboles, relieve, obstáculos, estructura, cargas, cableado ni pérdidas reales de potencia. El perfil de horizonte PVGIS se muestra como dato y no se integra en el cálculo de sombras entre filas.
+OMIE: FORMATO Y CRITERIO
+El fichero MARGINALPDBC contiene los campos Año; Mes; Día; Periodo; MarginalPT; MarginalES. La aplicación utiliza MarginalES, correspondiente a España. Los precios se reciben en €/MWh y se convierten a €/kWh dividiendo entre 1.000. Desde octubre de 2025 pueden existir 96 periodos de 15 minutos en un día ordinario. La disponibilidad de descarga directa depende del acceso del navegador; si falla, descarga el fichero oficial de OMIE e impórtalo manualmente.
 
-PUBLICACIÓN
-Sustituye en la raíz del repositorio los cuatro archivos anteriores por los cuatro de este paquete. No introduzcas la carpeta contenedora del ZIP: los archivos deben quedar directamente en la raíz. Espera a que GitHub Pages publique y comprueba que el encabezado indique Versión 3.5.6. Si la app ya estaba instalada, ciérrala y vuelve a abrirla después de que la página web muestre la nueva versión.
+INFORME Y AMORTIZACIÓN
+- El PDF se obtiene desde «Generar PDF / Imprimir» y seleccionando «Guardar como PDF» en el diálogo del navegador o del móvil.
+- El Excel es un libro .xlsx generado localmente, con hojas de presentación, cubierta, sombras, equipos, producción, consumo, OMIE, tarifa, amortización e hipótesis.
+- La producción mensual se distribuye de forma uniforme a partir del rendimiento anual introducido cuando no se dispone de una simulación mensual PVGIS. Se etiqueta expresamente como estimación.
+- La amortización es orientativa. Depende de los datos de consumo, autoconsumo, tarifa, excedentes, inversión y evolución de precios introducidos.
+- Autor del estudio: Arturo Ferrándiz Sánchez. El autor no se identifica como instalador ni como técnico certificador.
 
-SEGUIDOR SOLAR — NOTA DE USO
-El azimut del eje se mide desde el norte geográfico en sentido horario (0° norte-sur; 90° este-oeste). El ángulo positivo representa el giro hacia el este del eje y el negativo hacia el oeste. La posición de referencia tiene la normal del módulo vertical (plano del panel horizontal). El backtracking es una aproximación geométrica para filas paralelas sobre terreno horizontal. No incorpora control por viento, terreno irregular, obstáculos ni validación estructural o mecánica.
+INSTALACIÓN / ACTUALIZACIÓN EN GITHUB PAGES
+1. Descomprime el ZIP.
+2. Sube los cuatro archivos de la raíz (index.html, manifest.webmanifest, sw.js e icon.svg) a la raíz del repositorio, sustituyendo los anteriores.
+3. Espera a que GitHub Pages publique los cambios.
+4. Abre la web y comprueba que el encabezado indica Versión 3.9.0.
+5. Si ya estaba instalada como PWA, cierra la aplicación por completo y vuelve a abrirla con conexión para que descargue la nueva caché.
 
+VALIDACIÓN REALIZADA EN ESTA ENTREGA
+- Sintaxis JavaScript comprobada con Node.js.
+- Formato OMIE probado con registros de ejemplo: se verifica que se utiliza el sexto campo (MarginalES) y el periodo del cuarto campo.
+- 114 identificadores HTML comprobados, sin duplicados.
+- Manifest JSON válido y paquete ZIP comprobado.
+- No se ha publicado esta versión en GitHub Pages desde aquí.
+- No se ha completado una prueba integral en navegador Android ni se ha validado el PDF/Excel abriéndolos desde un dispositivo real.
 
-BACKTRACKING — DATOS DE ENTRADA
-- Ancho de mesa: dimensión efectiva de los módulos en la dirección perpendicular al eje de giro.
-- Distancia entre ejes: separación horizontal entre ejes de filas consecutivas. Debe ser igual o mayor que el ancho de mesa.
-- GCR = ancho de mesa / distancia entre ejes. El backtracking reduce el ángulo ideal cuando la geometría indica riesgo de sombreado entre filas; después se aplica el límite mecánico.
-- Si el backtracking está desactivado, se conserva el seguimiento geométrico ideal antes del límite mecánico.
-- La separación debe introducirse en metros y representar la geometría real de las mesas; valores incorrectos producen resultados incorrectos.
-
-
-CAMBIO 3.5.2: la pestaña PVGIS externa abre PVcalc con las coordenadas del proyecto. Se corrige outputformat para usar JSON (valor admitido por PVGIS) y browser=0; no se usa "browser" como formato de salida.
-
-
-Versión 3.5.2: se elimina la pestaña independiente PVGIS. La apertura de PVGIS y la visualización de coordenadas quedan dentro de «Sol y sombras». El botón abre la herramienta oficial de PVGIS en otra pestaña e incorpora latitud y longitud en la URL.
-
-POTENCIA OBJETIVO Y DISTRIBUCIÓN
-- Introduce la potencia objetivo en kWp en la ficha «Panel fotovoltaico» (por ejemplo, 5 kWp).
-- El programa divide esa potencia entre los Wp del panel y redondea hacia arriba al siguiente módulo entero. Por ejemplo, 5 kWp con módulos de 450 Wp requiere 12 paneles y da 5,40 kWp instalados.
-- Al generar la distribución, coloca ese número de paneles respetando la superficie útil y la separación entre filas calculada. Si no caben, muestra la capacidad máxima de la cubierta y la potencia que sí puede instalarse.
-- Cambiar la potencia objetivo requiere volver a pulsar «Generar distribución».
-
-
-CAMBIO 3.5.5: se corrige el botón de PVGIS. La URL anterior abría la interfaz web con parámetros que no están documentados para precargar la ubicación y por eso no funcionaba. Ahora se abre el servicio oficial PVGIS API PVcalc v5.3 con latitud, longitud, potencia objetivo (kWp), inclinación y orientación del proyecto. Devuelve el resultado oficial en JSON. Se actualiza la caché del service worker.
-
-
-Versión 3.5.6: Sol y sombras pasa a ser la primera pestaña. En esa pestaña hay un enlace azul al cálculo PVGIS con latitud/longitud y parámetros del proyecto actualizados automáticamente, y otro enlace azul a la interfaz interactiva oficial de PVGIS.
-
-
-CAMBIO 3.5.6: en «Sol y sombras» se separan los ajustes de montaje coplanar y montaje con estructura. Cada modalidad tiene su propio campo de ángulo óptimo. En «Configuración del estudio» se elige qué modalidad se calcula; el ángulo seleccionado alimenta el cálculo de sombras, la distribución y el enlace PVGIS. La caché del service worker se actualiza a v16.
-
-
-VERSIÓN 3.5.8 – AZIMUT
-El azimut de la cara de los módulos se puede introducir manualmente o medir con la brújula del móvil (si el navegador y el dispositivo lo permiten). Para medirlo, mantén el móvil plano y apunta su borde superior hacia donde miran los paneles. El GPS solo determina la ubicación, no la orientación. El valor inicial de 180° es una referencia sur, no una medición.
-
-
-Versión 3.5.8: la pestaña inicial se centra en ubicación y acceso a PVGIS. Se ocultan los controles de sombras y azimut en esta pestaña. Se elimina la consulta API que no funcionaba y se añade un campo de coordenadas decimales con botón para copiarlas y pegarlas en la herramienta oficial interactiva de PVGIS. La herramienta PVGIS permite configurar allí los ángulos y parámetros de cálculo.
-
-
-VERSIÓN 3.5.9 — CORRECCIÓN DE INTERFAZ
-- Los controles de inclinación coplanar, inclinación con estructura y tipo de montaje se muestran ahora en la pestaña «Tejado».
-- Se conservan los mismos identificadores y la lógica existente que sincroniza el ángulo seleccionado con los cálculos y el enlace de referencia a PVGIS.
-- Se incrementa la caché del service worker a v19 para que las instalaciones existentes descarguen la nueva versión.
-- No se ha cambiado el modelo geométrico de sombras ni las fórmulas fotovoltaicas.
-
-VERSIÓN 3.6.0
-- Nueva pestaña Energía y amortización.
-- Consulta/importación de ficheros públicos de precios horarios OMIE (MARGINALPDBC), conversión €/MWh a €/kWh y comparación gráfica con la tarifa introducida por el usuario.
-- Tarifas de precio fijo o tres periodos y compensación de excedentes configurable.
-- Estimación de producción, autoconsumo, excedentes, ahorro y plazo de amortización a 25 años.
-- La potencia real calculada en la distribución se transfiere al módulo de amortización.
-- Caché PWA actualizada a v20.
-Nota: el precio OMIE es mayorista y no equivale al precio final de factura. La descarga directa puede depender de CORS; se incluye importación manual del fichero oficial.
+ALCANCE Y LIMITACIONES
+La aplicación ofrece un estudio preliminar. La geometría de sombras es simplificada y no modela todos los obstáculos, el relieve ni las pérdidas reales. La producción no sustituye una simulación PVGIS mensual cuando no se ha importado. La amortización no incorpora financiación, mantenimiento, degradación, sustitución de equipos, impuestos ni ayudas. El informe no es proyecto técnico visado, memoria reglamentaria, certificado de instalación ni garantía de producción.
