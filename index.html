@@ -7,7 +7,7 @@
 <meta name="description" content="Diseño preliminar fotovoltaico con geometría solar y sombras entre filas durante el año.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<title>Solar Roof Planner</title>
+<title>FaraEladio Roof Planner Design</title>
 <style>
 :root{color-scheme:light dark;--green:#126b4b;--line:#9998;--soft:#8882;--blue:#287fa0;--orange:#c47b24}
 *{box-sizing:border-box}body{font:16px system-ui;margin:0;padding:14px;max-width:1000px;margin:auto}
@@ -37,9 +37,9 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1>Solar Roof Planner</h1><div class="muted">Versión 3.5.9 · Inclinación de cubierta y PWA</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>FaraEladio Roof Planner Design</h1><div class="muted">Versión 3.6.0 · Energía y amortización</div></div></header>
 <nav>
-<button class="active" data-tab="solar">Ubicación y PVGIS</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button>
+<button class="active" data-tab="solar">Ubicación y PVGIS</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button><button data-tab="energy">Energía y amortización</button>
 </nav>
 <section id="roof">
 <div class="card"><h2>Dimensiones de cubierta</h2><div class="grid">
@@ -146,6 +146,48 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 <div class="card"><h2>Tabla de posiciones</h2><div id="trackerTable" class="table-wrap"><p class="muted">La tabla aparecerá al realizar el cálculo.</p></div><button type="button" id="trackerCsv" class="primary" disabled>Exportar tabla del seguidor a CSV</button></div>
 <div class="notice"><b>Alcance del modelo:</b> backtracking geométrico simplificado para filas paralelas, eje horizontal y terreno plano, usando GCR = ancho de mesa / distancia entre ejes. No incluye backtracking 3D, terreno irregular, seguidores desalineados, obstáculos, stow por viento, límites de cableado, deformaciones, cimentación ni cálculo estructural. No es un diseño mecánico ni una predicción de producción energética.</div>
 </section>
+
+<section id="energy">
+<div class="card"><h2>Precio de la energía · OMIE</h2>
+<p class="mutedbox">Consulta el precio marginal del mercado diario español publicado por OMIE. Es un precio mayorista, no el precio final de tu factura.</p>
+<div class="grid">
+<label>Fecha OMIE<input id="omieDate" type="date"></label>
+<div class="inline" style="align-items:end"><button type="button" id="loadOmie">Consultar OMIE</button><a href="https://www.omie.es/es/market-results/daily/daily-market/day-ahead-price" target="_blank" rel="noopener">Ver precios OMIE</a> · <a href="https://www.omie.es/es/file-access-list?dir=Precios+horarios+del+mercado+diario+en+Espa%C3%B1a&parents%5B0%5D=%2F&parents%5B1%5D=Mercado+Diario&parents%5B2%5D=Precios&realdir=marginalpdbc" target="_blank" rel="noopener">Descargar fichero oficial</a></div>
+<label>Precio medio OMIE de referencia (€/kWh)<input id="omieAverage" type="number" value="0.10" min="0" step="0.001"></label>
+</div>
+<div id="omieStatus" class="notice" aria-live="polite">Selecciona una fecha y consulta los datos oficiales. Si el navegador bloquea la descarga, puedes importar el fichero CSV de OMIE.</div>
+<label>Importar fichero de OMIE (.csv/.txt)<input id="omieFile" type="file" accept=".csv,.txt,.v,text/plain,text/csv"></label>
+<div class="stats"><div class="stat"><div class="num" id="omieMean">—</div><small>Media OMIE €/kWh</small></div><div class="stat"><div class="num" id="omieMin">—</div><small>Mínimo €/kWh</small></div><div class="stat"><div class="num" id="omieMax">—</div><small>Máximo €/kWh</small></div><div class="stat"><div class="num" id="omiePeriods">—</div><small>Periodos recibidos</small></div></div>
+</div>
+<div class="card"><h2>Comparación OMIE y precio de tu factura</h2>
+<div class="grid">
+<label>Tipo de tarifa<select id="billMode"><option value="flat">Precio fijo</option><option value="tou">Tres periodos · punta/llano/valle</option></select></label>
+<label>Precio fijo factura (€/kWh)<input id="billFlat" type="number" value="0.20" min="0" step="0.001"></label>
+<label class="touField hidden">Punta (€/kWh)<input id="billPeak" type="number" value="0.24" min="0" step="0.001"></label>
+<label class="touField hidden">Llano (€/kWh)<input id="billMid" type="number" value="0.17" min="0" step="0.001"></label>
+<label class="touField hidden">Valle (€/kWh)<input id="billValley" type="number" value="0.12" min="0" step="0.001"></label>
+<label>Compensación excedentes (€/kWh)<input id="exportPrice" type="number" value="0.07" min="0" step="0.001"></label>
+</div>
+<canvas id="energyPriceChart" width="900" height="330" aria-label="Comparación horaria de precio OMIE y tarifa eléctrica"></canvas>
+<div class="mutedbox">La tarifa de factura se representa como precio final introducido por ti, sin inventar cargos. La curva OMIE es el precio mayorista y no incluye peajes, cargos, impuestos, margen comercial ni otros conceptos.</div>
+</div>
+<div class="card"><h2>Datos de tu instalación y vivienda</h2>
+<div class="grid">
+<label>Potencia instalada (kWp)<input id="energyKwp" type="number" value="5" min="0.1" step="0.1"></label>
+<label>Producción anual estimada (kWh/kWp·año)<input id="yieldKwh" type="number" value="1500" min="500" max="2200" step="25"></label>
+<label>Consumo anual vivienda (kWh)<input id="annualUse" type="number" value="4000" min="0" step="100"></label>
+<label>Autoconsumo directo estimado (%)<input id="selfUse" type="number" value="40" min="0" max="100" step="1"></label>
+<label>Coste total instalación (€)<input id="installCost" type="number" value="6000" min="0" step="100"></label>
+<label>Incremento anual precio electricidad (%)<input id="priceRise" type="number" value="2" min="-5" max="15" step="0.5"></label>
+<label>Precio usado en amortización<select id="paybackPriceMode"><option value="bill">Mi tarifa de factura</option><option value="omie">Precio medio OMIE de referencia</option></select></label>
+</div>
+<button type="button" class="primary" id="calcPayback">Calcular ahorro y amortización</button>
+<div id="paybackOut" aria-live="polite"><p class="muted">Introduce tus datos y calcula la rentabilidad estimada.</p></div>
+<canvas id="paybackChart" width="900" height="330" aria-label="Gráfico de recuperación de inversión durante 25 años"></canvas>
+<div class="notice">Estimación simplificada: no incluye financiación, mantenimiento, degradación de módulos, sustitución de inversor, impuestos, ayudas ni cambios regulatorios. La producción específica y el porcentaje de autoconsumo deben ajustarse a cada vivienda. La potencia instalada se sincroniza con la distribución cuando se genera.</div>
+</div>
+</section>
+
 <section id="results">
 <div class="card"><h2>Resumen del proyecto</h2><div class="stats">
 <div class="stat"><div class="num" id="nPanels">—</div><small>Paneles</small></div>
@@ -396,6 +438,7 @@ $('pack').onclick=()=>{
  if(cols===0||maxRows===0||maxCount===0){$('drawing').innerHTML='<div class="warn">Con estas dimensiones y separación no cabe ningún panel. Reduce márgenes o separación, o revisa el tamaño del módulo.</div>';layout=null;return;}
  const count=Math.min(desiredCount,maxCount),rows=Math.ceil(count/cols),actualKwp=count*wp/1000;
  layout={cols,rows,count,gap,panelW,footprintDepth,targetKwp,desiredCount,maxRows,maxCount,actualKwp};
+ $('energyKwp').value=actualKwp.toFixed(2);
  let svgW=360,svgH=Math.max(140,Math.min(300,svgW*rl/Math.max(rw,.1))),sx=(svgW-20)/rw,sy=(svgH-20)/rl;
  let rects='';for(let i=0;i<count;i++){const r=Math.floor(i/cols),c=i%cols;rects+=`<rect x="${10+(mx+c*(panelW+pg))*sx}" y="${10+(my+r*(footprintDepth+gap))*sy}" width="${panelW*sx*.96}" height="${footprintDepth*sy*.96}" rx="2" fill="#287fa0" stroke="#14516b"/>`;}
  const capacityWarning=desiredCount>maxCount?`<div class="warn">La cubierta no admite los ${desiredCount} paneles necesarios para alcanzar ${targetKwp.toFixed(2)} kWp. Caben como máximo ${maxCount} paneles (${(maxCount*wp/1000).toFixed(2)} kWp). Se muestra la distribución máxima posible.</div>`:'';
@@ -496,6 +539,61 @@ layoutInputs.forEach(id=>$(id).addEventListener('change',()=>{layout=null;}));
 $('calc').onclick=()=>{layout=null;calcSolar();};
 
 updateRowGeometry();
+
+// Módulo de precios OMIE, tarifa de factura y amortización.
+let omiePrices=[];
+function parseOmieText(txt){
+ const rows=txt.replace(/^\uFEFF/,'').split(/\r?\n/);const out=[];
+ for(const line of rows){const a=line.trim().split(';');if(a.length<7||!/^\d{4}$/.test(a[0]))continue;
+  const price=Number(String(a[5]).replace(',','.'));
+  if(Number.isFinite(price))out.push({period:Number(a[4]),eurMwh:price,eurKwh:price/1000});
+ }
+ return out;
+}
+function drawLineChart(canvas,series,yLabel,xLabel='Hora del día'){
+ const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.font='13px system-ui';
+ const vals=series.flatMap(s=>s.values.filter(Number.isFinite));if(!vals.length){ctx.fillText('Consulta o importa los precios para mostrar el gráfico.',20,35);return;}
+ let min=Math.min(0,...vals),max=Math.max(...vals);if(max-min<.001)max=min+0.01;const left=58,right=18,top=25,bottom=42,pw=w-left-right,ph=h-top-bottom;
+ ctx.strokeStyle='#9998';ctx.fillStyle='currentColor';ctx.lineWidth=1;
+ for(let i=0;i<=4;i++){let y=top+ph*i/4,val=max-(max-min)*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillText(val.toFixed(3),5,y+4);}
+ ctx.fillText(yLabel,w-150,16);ctx.fillText(xLabel,w/2-35,h-8);
+ series.forEach((s,si)=>{ctx.strokeStyle=s.color;ctx.lineWidth=2.5;ctx.beginPath();let started=false;s.values.forEach((v,i)=>{if(!Number.isFinite(v))return;let x=left+pw*(i/Math.max(1,s.values.length-1)),y=top+ph*(max-v)/(max-min);if(!started){ctx.moveTo(x,y);started=true}else ctx.lineTo(x,y);});ctx.stroke();ctx.fillStyle=s.color;ctx.fillRect(left+si*190,top-17,14,4);ctx.fillStyle='currentColor';ctx.fillText(s.name,left+si*190+20,top-12);});
+ for(let i=0;i<24;i+=2){let x=left+pw*i/23;ctx.fillStyle='currentColor';ctx.fillText(String(i).padStart(2,'0')+'h',x-10,h-22);}
+}
+function invoiceHourly(){const mode=$('billMode').value;if(mode==='flat')return Array(24).fill(Number($('billFlat').value));
+ // Calendario simplificado peninsular: punta 10-14 y 18-22 laborables; llano 8-10,14-18,22-24; valle resto. Fin de semana valle.
+ const date=$('omieDate').value?new Date($('omieDate').value+'T12:00:00'):new Date();const weekend=[0,6].includes(date.getDay());
+ return Array.from({length:24},(_,h)=>weekend?Number($('billValley').value):([10,11,12,13,18,19,20,21].includes(h)?Number($('billPeak').value):([8,9,14,15,16,17,22,23].includes(h)?Number($('billMid').value):Number($('billValley').value))));
+}
+function refreshEnergyChart(){const om=Array(24).fill(NaN);if(omiePrices.length){const sums=Array(24).fill(0),counts=Array(24).fill(0);omiePrices.forEach((p,i)=>{let hour=omiePrices.length===96?Math.floor(i/4):i;if(hour<24){sums[hour]+=p.eurKwh;counts[hour]++;}});om.forEach((_,h)=>{if(counts[h])om[h]=sums[h]/counts[h];});}
+ const bill=invoiceHourly();drawLineChart($('energyPriceChart'),[{name:'OMIE · €/kWh',values:om,color:'#287fa0'},{name:'Factura · €/kWh',values:bill,color:'#c47b24'}],'€/kWh');}
+function updateOmieStats(){if(!omiePrices.length){['omieMean','omieMin','omieMax','omiePeriods'].forEach(id=>$(id).textContent='—');refreshEnergyChart();return;}
+ const a=omiePrices.map(x=>x.eurKwh),mean=a.reduce((x,y)=>x+y,0)/a.length;$('omieMean').textContent=mean.toFixed(4);$('omieMin').textContent=Math.min(...a).toFixed(4);$('omieMax').textContent=Math.max(...a).toFixed(4);$('omiePeriods').textContent=a.length;$('omieAverage').value=mean.toFixed(4);refreshEnergyChart();}
+async function loadOmie(){const d=$('omieDate').value;if(!d)return;const compact=d.replaceAll('-','');$('omieStatus').textContent='Consultando fichero oficial de OMIE…';
+ const url=`https://www.omie.es/es/file-download?filename=marginalpdbc_${compact}.1&parents=marginalpdbc`;
+ try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const txt=await r.text();const parsed=parseOmieText(txt);if(!parsed.length)throw new Error('El fichero no contiene filas reconocibles.');omiePrices=parsed;updateOmieStats();$('omieStatus').textContent=`Datos OMIE cargados: ${parsed.length} periodos. Fuente: fichero oficial del mercado diario español. Precio en €/kWh convertido desde €/MWh.`;}
+ catch(e){$('omieStatus').textContent='No se ha podido descargar directamente el fichero desde este navegador (posible bloqueo CORS o fichero aún no publicado). Descarga el fichero de OMIE y selecciónalo en «Importar fichero»; no se mostrarán datos inventados.';}
+}
+$('loadOmie').onclick=loadOmie;
+$('omieFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;const parsed=parseOmieText(await f.text());if(!parsed.length){$('omieStatus').textContent='No se reconocen datos MARGINALPDBC. Comprueba que has seleccionado el fichero de precios horarios de España.';return;}omiePrices=parsed;updateOmieStats();$('omieStatus').textContent=`Fichero importado correctamente: ${parsed.length} periodos.`;});
+$('billMode').addEventListener('change',()=>{document.querySelectorAll('.touField').forEach(el=>el.classList.toggle('hidden',$('billMode').value!=='tou'));refreshEnergyChart();});
+['billFlat','billPeak','billMid','billValley','omieDate','omieAverage','paybackPriceMode'].forEach(id=>$(id).addEventListener('change',refreshEnergyChart));
+function calculatePayback(){
+ const kwp=Number($('energyKwp').value),yieldRate=Number($('yieldKwh').value),cons=Number($('annualUse').value),share=Number($('selfUse').value)/100,cost=Number($('installCost').value),rise=Number($('priceRise').value)/100,exportRate=Number($('exportPrice').value);
+ const billRetail=$('billMode').value==='flat'?Number($('billFlat').value):(Number($('billPeak').value)+Number($('billMid').value)+Number($('billValley').value))/3;
+ const retail=$('paybackPriceMode').value==='omie'?Number($('omieAverage').value):billRetail;
+ if(![kwp,yieldRate,cons,share,cost,rise,exportRate,retail].every(Number.isFinite)||kwp<=0||yieldRate<=0||cons<0||share<0||share>1||cost<=0||retail<0||exportRate<0){$('paybackOut').innerHTML='<div class="warn">Revisa los datos: deben ser valores válidos y la inversión debe ser superior a cero.</div>';return;}
+ const production=kwp*yieldRate,self=Math.min(cons,production*share),surplus=Math.max(0,production-self),avoided=self*retail,exportValue=surplus*exportRate,annual=avoided+exportValue;
+ let cum=-cost,years=[],payback=null;for(let y=1;y<=25;y++){const saving=avoided*Math.pow(1+rise,y-1)+exportValue*Math.pow(1+rise,y-1);cum+=saving;years.push({year:y,cum, saving});if(payback===null&&cum>=0){const prev=cum-saving;payback=(y-1)+(-prev)/saving;}}
+ const fmt=n=>n.toLocaleString('es-ES',{maximumFractionDigits:0});$('paybackOut').innerHTML=`<div class="stats"><div class="stat"><div class="num">${fmt(production)}</div><small>Producción anual kWh</small></div><div class="stat"><div class="num">${fmt(self)}</div><small>Autoconsumo kWh/año</small></div><div class="stat"><div class="num">${fmt(surplus)}</div><small>Excedentes kWh/año</small></div><div class="stat"><div class="num">${fmt(annual)} €</div><small>Ahorro anual inicial</small></div></div><div class="stats"><div class="stat"><div class="num">${payback===null?'Más de 25 años':payback.toFixed(1)+' años'}</div><small>Amortización estimada</small></div><div class="stat"><div class="num">${fmt(avoided)} €</div><small>Compra evitada</small></div><div class="stat"><div class="num">${fmt(exportValue)} €</div><small>Compensación excedentes</small></div><div class="stat"><div class="num">${fmt(years[24].cum)} €</div><small>Balance acumulado año 25</small></div></div><p>Instalación: <b>${kwp.toFixed(2)} kWp</b> · Inversión: <b>${fmt(cost)} €</b> · Precio medio usado para el ahorro: <b>${retail.toFixed(3)} €/kWh</b>. El resultado depende de que el autoconsumo real coincida con el porcentaje indicado.</p>`;
+ const vals=[-cost,...years.map(x=>x.cum)];drawLineChart($('paybackChart'),[{name:'Balance acumulado (€)',values:vals,color:'#126b4b'}],'€','Años');
+}
+$('calcPayback').onclick=calculatePayback;
+$('targetKwp').addEventListener('change',()=>{$('energyKwp').value=$('targetKwp').value;});
+(()=>{const d=new Date(),local=new Date(d.getTime()-d.getTimezoneOffset()*60000);$('omieDate').value=local.toISOString().slice(0,10);})();
+$('energyKwp').value=$('targetKwp').value;
+refreshEnergyChart();
+
 if('serviceWorker' in navigator)window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});await registration.update();}catch(error){console.warn('No se pudo actualizar el service worker:',error);}});
 window.showTab=showTab;
 </script>

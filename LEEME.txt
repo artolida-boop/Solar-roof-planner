@@ -81,3 +81,12 @@ VERSIÓN 3.5.9 — CORRECCIÓN DE INTERFAZ
 - Se conservan los mismos identificadores y la lógica existente que sincroniza el ángulo seleccionado con los cálculos y el enlace de referencia a PVGIS.
 - Se incrementa la caché del service worker a v19 para que las instalaciones existentes descarguen la nueva versión.
 - No se ha cambiado el modelo geométrico de sombras ni las fórmulas fotovoltaicas.
+
+VERSIÓN 3.6.0
+- Nueva pestaña Energía y amortización.
+- Consulta/importación de ficheros públicos de precios horarios OMIE (MARGINALPDBC), conversión €/MWh a €/kWh y comparación gráfica con la tarifa introducida por el usuario.
+- Tarifas de precio fijo o tres periodos y compensación de excedentes configurable.
+- Estimación de producción, autoconsumo, excedentes, ahorro y plazo de amortización a 25 años.
+- La potencia real calculada en la distribución se transfiere al módulo de amortización.
+- Caché PWA actualizada a v20.
+Nota: el precio OMIE es mayorista y no equivale al precio final de factura. La descarga directa puede depender de CORS; se incluye importación manual del fichero oficial.
