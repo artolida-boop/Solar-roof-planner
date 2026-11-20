@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#b51f1a">
+<meta name="theme-color" content="#126b4b">
 <meta name="description" content="Diseño preliminar fotovoltaico con geometría solar y sombras entre filas durante el año.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<title>FaraEladio Roof Planner Design</title>
+<title>FaraEladio Roof Planner and economic design</title>
 <style>
 :root{color-scheme:light dark;--green:#126b4b;--line:#9998;--soft:#8882;--blue:#287fa0;--orange:#c47b24}
 *{box-sizing:border-box}body{font:16px system-ui;margin:0;padding:14px;max-width:1000px;margin:auto}
@@ -35,13 +35,11 @@ svg.plan{width:100%;height:auto;border:1px solid var(--line);border-radius:9px;d
 @media print{nav,button,.notice,header{display:none!important}body{max-width:none;padding:0;color:#111;background:#fff}body *{color:#111!important}body>section{display:none!important}body>#report{display:block!important}#report>.card:first-child{display:none!important}#reportPreview{display:block!important;border:0;padding:0;margin:0}#reportPreview .report-page{break-after:page;page-break-after:always}#reportPreview .report-page:last-child{break-after:auto}#reportPreview .card{break-inside:avoid;border:0}#reportPreview table{min-width:0;font-size:10px}#reportPreview canvas{max-width:100%}}
 #tracker, nav button[data-tab="tracker"]{display:none!important}
 
-/* FaraEladio 3.9.2 · identidad rock premium */
+/* FaraEladio 3.9.0 · acabado premium adaptable */
 :root{color-scheme:light;--green:#087f63;--line:#dce5e1;--soft:#f2f7f5;--blue:#287fa0;--orange:#c47b24;--ink:#18332b;--muted:#65766f;--surface:#fff;--bg:#f5f8f7}
 body{max-width:1180px;padding:clamp(12px,2.2vw,26px);background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.48}
 header{padding:16px 18px;border:1px solid #dfe9e4;border-radius:18px;background:linear-gradient(115deg,#fff 0%,#edf7f2 100%);box-shadow:0 8px 26px #163c2a0b;margin:2px 0 16px}
-header img{width:60px;height:60px;padding:3px;background:#101c18;border:1px solid #d5ad45;border-radius:14px;box-shadow:0 4px 12px #1113}
-header h1{font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:clamp(23px,3.5vw,31px);font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:#d92720;-webkit-text-stroke:.45px #8e1a12;text-shadow:1.5px 1.5px 0 #f5d35b,3px 3px 0 #6c170e,0 4px 9px #1113;line-height:1.05}
-header .muted{color:#5f756a;opacity:1;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+header img{width:52px;height:52px;padding:5px;background:#e3f2eb;border-radius:14px}h1{font-size:clamp(20px,3vw,27px);letter-spacing:-.6px;color:#123c2d}header .muted{color:#5f756a;opacity:1;font-weight:600}
 nav{position:sticky;top:0;z-index:20;padding:8px 0 10px;background:var(--bg);gap:7px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
 nav button{flex:0 0 auto;border:1px solid #d5e2db;border-radius:999px;padding:9px 14px;background:#fff;color:#35574a;font-size:13px;white-space:nowrap;transition:background .15s,border-color .15s,transform .15s}
 nav button.active{background:#087f63;border-color:#087f63;color:#fff;box-shadow:0 4px 12px #087f6330}
@@ -62,7 +60,7 @@ section{scroll-margin-top:80px}
 </style>
 </head>
 <body>
-<header><img src="icon.svg" alt=""><div><h1 style="color:#b51f1a">FaraEladio Roof Planner Design</h1><div class="muted">Versión 3.9.3 · Auditoría y correcciones</div></div></header>
+<header><img src="icon.svg" alt=""><div><h1>FaraEladio Roof Planner and economic design</h1><div class="muted">Versión 3.9.0 · Edición premium</div></div></header>
 <nav>
 <button class="active" data-tab="solar">Ubicación y PVGIS</button><button data-tab="roof">Tejado</button><button data-tab="layout">Distribución</button><button data-tab="results">Resultados</button><button data-tab="energy">Energía y amortización</button><button data-tab="report">Informe técnico y económico</button>
 </nav>
@@ -113,6 +111,9 @@ section{scroll-margin-top:80px}
 </div>
 <div class="card legacy-hidden"><h2>Geometría de módulos y filas</h2><div class="grid">
 <label>Azimut de la cara del módulo (°)<input id="faceAz" type="number" value="180" min="0" max="359.99" step="1"></label>
+<label>Medición de orientación<select id="azimuthMode"><option value="manual">Introducir manualmente</option><option value="compass">Medir con brújula del móvil</option></select></label>
+<div class="inline" style="grid-column:1/-1"><button type="button" id="measureAzimuth">Medir azimut con el móvil</button><span class="muted">Apunta el borde superior del móvil hacia donde miran los paneles.</span></div>
+<div id="azimuthStatus" class="notice" aria-live="polite">El valor inicial de 180° es una referencia sur, no una medición automática. El GPS obtiene la ubicación, pero no la orientación del tejado. Puedes introducir el azimut o medirlo con la brújula del móvil.</div>
 <label>Azimut del eje de las filas (°)<input id="rowAz" type="number" value="90" min="0" max="359.99" step="1"></label>
 </div>
 
@@ -188,7 +189,6 @@ section{scroll-margin-top:80px}
 <label class="touField hidden">Punta (€/kWh)<input id="billPeak" type="number" value="0.24" min="0" step="0.001"></label>
 <label class="touField hidden">Llano (€/kWh)<input id="billMid" type="number" value="0.17" min="0" step="0.001"></label>
 <label class="touField hidden">Valle (€/kWh)<input id="billValley" type="number" value="0.12" min="0" step="0.001"></label>
-<div class="touField hidden" style="grid-column:1/-1"><p class="mutedbox">Para calcular un precio medio ponderado, indica qué porcentaje de tu consumo anual corresponde a cada periodo. Ajusta estos porcentajes con los datos de tu factura o distribuidora; deben sumar 100 %.</p><div class="grid"><label>Consumo en punta (%)<input id="usePeak" type="number" value="30" min="0" max="100" step="1"></label><label>Consumo en llano (%)<input id="useMid" type="number" value="30" min="0" max="100" step="1"></label><label>Consumo en valle (%)<input id="useValley" type="number" value="40" min="0" max="100" step="1"></label></div><div id="tariffWeightStatus" class="notice" aria-live="polite">Distribución inicial orientativa: 30 % punta, 30 % llano y 40 % valle. Sustitúyela por tu consumo real.</div></div>
 <label>Compensación excedentes (€/kWh)<input id="exportPrice" type="number" value="0.07" min="0" step="0.001"></label>
 </div>
 <canvas id="energyPriceChart" width="900" height="330" aria-label="Comparación horaria de precio OMIE y tarifa eléctrica"></canvas>
@@ -215,7 +215,7 @@ section{scroll-margin-top:80px}
 <section id="report">
 <div class="card"><h2>Informe técnico y económico del proyecto</h2>
 <p>Genera un documento con los datos actuales del diseño, la configuración fotovoltaica, la producción estimada y el análisis económico. Los datos se toman directamente de las pestañas anteriores.</p>
-<div class="good"><b>Autor del estudio: Arturo Ferrándiz Sánchez</b><br>FaraEladio Roof Planner Design · Informe generado en este dispositivo</div>
+<div class="good"><b>Autor del estudio: Arturo Ferrándiz Sánchez</b><br>FaraEladio Roof Planner and economic design · Informe generado en este dispositivo</div>
 <div class="grid">
 <label>Nombre del proyecto (opcional)<input id="reportProject" type="text" placeholder="Ej. Instalación fotovoltaica vivienda"></label>
 <label>Cliente / titular (opcional)<input id="reportClient" type="text" placeholder="Nombre del titular"></label>
@@ -428,6 +428,39 @@ $('gpsLocation').onclick=()=>{
 };
 
 $('preset').onchange=()=>{if($('preset').value==='alicante'){$('place').value='Alicante (referencia IGN ALAC)';$('lat').value='38.33892';$('lon').value='-0.48123';updatePvgisLink();}};
+function setAzimuthFromCompass(degrees){
+ const az=((degrees%360)+360)%360;
+ $('faceAz').value=az.toFixed(1);$('azimuthMode').value='compass';
+ $('azimuthStatus').textContent=`Orientación medida: ${az.toFixed(1)}°. Comprueba que el borde superior del móvil apuntaba hacia donde miran los paneles. Puedes corregir el valor manualmente.`;
+ updateRowGeometry();updatePvgisLink();lastSolar=null;layout=null;
+}
+$('measureAzimuth').onclick=async()=>{
+ const status=$('azimuthStatus');
+ if(!('DeviceOrientationEvent' in window)){status.textContent='Este dispositivo o navegador no ofrece brújula. Introduce el azimut manualmente.';return;}
+ try{
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+   const permission=await DeviceOrientationEvent.requestPermission();
+   if(permission!=='granted'){status.textContent='No se concedió permiso para usar la brújula. Puedes introducir el azimut manualmente.';return;}
+  }
+ }catch(error){status.textContent='No se pudo activar la brújula. Comprueba los permisos del navegador o introduce el azimut manualmente.';return;}
+ status.textContent='Midiendo… Mantén el móvil plano y apunta su borde superior en la dirección hacia la que miran los paneles.';
+ let captured=false;
+ const finish=(event)=>{
+  if(captured)return;
+  let heading=Number.isFinite(event.webkitCompassHeading)?event.webkitCompassHeading:null;
+  if(heading===null&&event.absolute===true&&Number.isFinite(event.alpha)){
+   const screenAngle=(screen.orientation&&Number.isFinite(screen.orientation.angle))?screen.orientation.angle:0;
+   heading=(360-event.alpha+screenAngle)%360;
+  }
+  if(heading===null)return;
+  captured=true;
+  window.removeEventListener('deviceorientation',finish,true);
+  window.removeEventListener('deviceorientationabsolute',finish,true);
+  setAzimuthFromCompass(heading);
+ };
+ window.addEventListener('deviceorientation',finish,true);
+ window.addEventListener('deviceorientationabsolute',finish,true);
+};
 ['faceAz','rowAz'].forEach(id=>$(id).addEventListener('input',updateRowGeometry));
 $('pack').onclick=()=>{
  let gap=$('gapMode').value==='manual'?v('manual'):calcSolar();
@@ -476,7 +509,7 @@ $('excel').onclick=()=>{
  }
  if(layout){sheets.push({name:'Distribucion',rows:[['Dato','Valor'],['Potencia objetivo (kWp)',layout.targetKwp.toFixed(2)],['Paneles',layout.count],['Filas',layout.rows],['Máximo paneles por fila',layout.cols],['Separación entre filas (m)',layout.gap.toFixed(3)],['Potencia instalada (kWp)',layout.actualKwp.toFixed(2)],['Ancho de cubierta (m)',v('rw')],['Largo de cubierta (m)',v('rl')]]});}
  const sheetXml=sheets.map(sh=>`<Worksheet ss:Name="${xmlEscape(sh.name)}"><Table>${sh.rows.map((row,i)=>`<Row>${row.map(cell=>{const numeric=cell!==''&&Number.isFinite(Number(cell));return `<Cell><Data ss:Type="${numeric?'Number':'String'}">${xmlEscape(cell)}</Data></Cell>`;}).join('')}</Row>`).join('')}</Table></Worksheet>`).join('');
- const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Title>FaraEladio Roof Planner Design</Title></DocumentProperties>${sheetXml}</Workbook>`;
+ const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Title>FaraEladio Roof Planner and economic design</Title></DocumentProperties>${sheetXml}</Workbook>`;
  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='FaraEladio_resultados.xls';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 
@@ -593,20 +626,10 @@ async function loadOmie(){const d=$('omieDate').value;if(!d)return;const compact
 $('loadOmie').onclick=loadOmie;
 $('omieFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;const parsed=parseOmieText(await f.text());if(!parsed.length){$('omieStatus').textContent='No se reconocen datos MARGINALPDBC. Comprueba que has seleccionado el fichero de precios horarios de España.';return;}omiePrices=parsed;updateOmieStats();$('omieStatus').textContent=`Fichero OMIE importado: ${parsed.length} periodos. Se ha leído el precio MarginalES (España).`;});
 $('billMode').addEventListener('change',()=>{document.querySelectorAll('.touField').forEach(el=>el.classList.toggle('hidden',$('billMode').value!=='tou'));refreshEnergyChart();});
-['billFlat','billPeak','billMid','billValley','usePeak','useMid','useValley','omieDate','omieAverage','paybackPriceMode'].forEach(id=>$(id).addEventListener('change',()=>{refreshEnergyChart();if($('paybackOut').innerHTML)calculatePayback();}));
-function weightedBillPrice(){
- if($('billMode').value==='flat')return Number($('billFlat').value);
- const shares=[Number($('usePeak').value),Number($('useMid').value),Number($('useValley').value)];
- const prices=[Number($('billPeak').value),Number($('billMid').value),Number($('billValley').value)];
- const total=shares.reduce((a,b)=>a+b,0);
- const valid=shares.every(x=>Number.isFinite(x)&&x>=0&&x<=100)&&Math.abs(total-100)<0.01&&prices.every(x=>Number.isFinite(x)&&x>=0);
- $('tariffWeightStatus').textContent=valid?`Consumo ponderado: ${shares[0]} % punta · ${shares[1]} % llano · ${shares[2]} % valle.`:`Los porcentajes de consumo deben sumar exactamente 100 % y los precios ser válidos. Ahora suman ${total.toFixed(1)} %.`;
- $('tariffWeightStatus').classList.toggle('warn',!valid);
- return valid?(shares[0]*prices[0]+shares[1]*prices[1]+shares[2]*prices[2])/100:NaN;
-}
+['billFlat','billPeak','billMid','billValley','omieDate','omieAverage','paybackPriceMode'].forEach(id=>$(id).addEventListener('change',refreshEnergyChart));
 function calculatePayback(){
- const kwp=Number(layout?.actualKwp??$('energyKwp').value),yieldRate=Number($('yieldKwh').value),cons=Number($('annualUse').value),share=Number($('selfUse').value)/100,cost=Number($('installCost').value),rise=Number($('priceRise').value)/100,exportRate=Number($('exportPrice').value);
- const billRetail=weightedBillPrice();
+ const kwp=Number($('energyKwp').value),yieldRate=Number($('yieldKwh').value),cons=Number($('annualUse').value),share=Number($('selfUse').value)/100,cost=Number($('installCost').value),rise=Number($('priceRise').value)/100,exportRate=Number($('exportPrice').value);
+ const billRetail=$('billMode').value==='flat'?Number($('billFlat').value):(Number($('billPeak').value)+Number($('billMid').value)+Number($('billValley').value))/3;
  const retail=$('paybackPriceMode').value==='omie'?Number($('omieAverage').value):billRetail;
  if(![kwp,yieldRate,cons,share,cost,rise,exportRate,retail].every(Number.isFinite)||kwp<=0||yieldRate<=0||cons<0||share<0||share>1||cost<=0||retail<0||exportRate<0){$('paybackOut').innerHTML='<div class="warn">Revisa los datos: deben ser valores válidos y la inversión debe ser superior a cero.</div>';return;}
  const production=kwp*yieldRate,self=Math.min(cons,production*share),surplus=Math.max(0,production-self),avoided=self*retail,exportValue=surplus*exportRate,annual=avoided+exportValue;
@@ -626,22 +649,22 @@ function reportVal(id){const el=$(id);return el?el.value:''}
 function fmtReport(n,d=2){return n===null||n===undefined||n===''||!Number.isFinite(Number(n))?'No disponible':Number(n).toLocaleString('es-ES',{maximumFractionDigits:d})}
 function reportData(){
  const nPanels=layout?.count??(Number($('nPanels')?.textContent)||null),kwp=layout?.actualKwp??(nPanels? nPanels*v('wp')/1000:null);
- const production=Number.isFinite((kwp??v('energyKwp'))*v('yieldKwh'))?(kwp??v('energyKwp'))*v('yieldKwh'):null;
+ const production=Number.isFinite(v('energyKwp')*v('yieldKwh'))?v('energyKwp')*v('yieldKwh'):null;
  const selfKwh=production===null?null:Math.min(v('annualUse'),production*v('selfUse')/100),surplus=production===null||selfKwh===null?null:Math.max(0,production-selfKwh);
- const tariff=weightedBillPrice();
+ const tariff=$('billMode').value==='flat'?v('billFlat'):(v('billPeak')+v('billMid')+v('billValley'))/3;
  const retail=$('paybackPriceMode').value==='omie'?v('omieAverage'):tariff;
  const saving=selfKwh===null?null:selfKwh*retail+surplus*v('exportPrice');
  const cost=v('installCost');
  let payback=null;if(saving>0&&cost>0){let balance=-cost;for(let year=1;year<=25;year++){const annualSaving=saving*Math.pow(1+v('priceRise')/100,year-1),previous=balance;balance+=annualSaving;if(balance>=0){payback=(year-1)+(-previous)/annualSaving;break;}}}
- return {date:new Date().toLocaleDateString('es-ES'),project:reportVal('reportProject')||'Estudio fotovoltaico',client:reportVal('reportClient')||'No indicado',installer:reportVal('reportInstaller')||'No indicado',notes:reportVal('reportNotes')||'Sin observaciones',place:reportVal('place'),lat:v('lat'),lon:v('lon'),rw:v('rw'),rl:v('rl'),mx:v('mx'),my:v('my'),pw:v('pw'),ph:v('ph'),wp:v('wp'),tilt:v('mountType')==='structure'?v('tiltStructure'):v('tiltCoplanar'),mount:$('mountType').selectedOptions[0].textContent,orientation:$('orient').selectedOptions[0].textContent,faceAz:v('faceAz'),panels:nPanels,kwp:kwp,cols:layout?.cols??null,rows:layout?.rows??null,gap:layout?.gap??null,area:nPanels?v('pw')*v('ph')*nPanels:null,production:production,consumption:v('annualUse'),selfPct:v('selfUse'),selfKwh:selfKwh,surplus:surplus,tariff:retail,exportPrice:v('exportPrice'),investment:cost,saving:saving,payback:payback,omieMean:omiePrices.length?omiePrices.reduce((a,x)=>a+x.eurKwh,0)/omiePrices.length:null,omie:omiePrices.slice(),annualYield:v('yieldKwh'),rise:v('priceRise'),billMode:$('billMode').value,billWeighted:tariff,usePeak:v('usePeak'),useMid:v('useMid'),useValley:v('useValley'),priceMode:$('paybackPriceMode').value,author:'Arturo Ferrándiz Sánchez'};
+ return {date:new Date().toLocaleDateString('es-ES'),project:reportVal('reportProject')||'Estudio fotovoltaico',client:reportVal('reportClient')||'No indicado',installer:reportVal('reportInstaller')||'No indicado',notes:reportVal('reportNotes')||'Sin observaciones',place:reportVal('place'),lat:v('lat'),lon:v('lon'),rw:v('rw'),rl:v('rl'),mx:v('mx'),my:v('my'),pw:v('pw'),ph:v('ph'),wp:v('wp'),tilt:v('mountType')==='structure'?v('tiltStructure'):v('tiltCoplanar'),mount:$('mountType').selectedOptions[0].textContent,orientation:$('orient').selectedOptions[0].textContent,faceAz:v('faceAz'),panels:nPanels,kwp:kwp,cols:layout?.cols??null,rows:layout?.rows??null,gap:layout?.gap??null,area:nPanels?v('pw')*v('ph')*nPanels:null,production:production,consumption:v('annualUse'),selfPct:v('selfUse'),selfKwh:selfKwh,surplus:surplus,tariff:retail,exportPrice:v('exportPrice'),investment:cost,saving:saving,payback:payback,omieMean:omiePrices.length?omiePrices.reduce((a,x)=>a+x.eurKwh,0)/omiePrices.length:null,omie:omiePrices.slice(),annualYield:v('yieldKwh'),rise:v('priceRise'),billMode:$('billMode').value,priceMode:$('paybackPriceMode').value,author:'Arturo Ferrándiz Sánchez'};
 }
 function reportRows(d){return [
- ['Identificación','Proyecto',d.project],['Identificación','Titular',d.client],['Identificación','Instalador',d.installer],['Ubicación','Referencia',d.place],['Ubicación','Latitud (°)',d.lat],['Ubicación','Longitud (°)',d.lon],['Cubierta','Ancho (m)',d.rw],['Cubierta','Largo (m)',d.rl],['Cubierta','Margen lateral (m)',d.mx],['Cubierta','Margen frontal/trasero (m)',d.my],['Módulo','Ancho (m)',d.pw],['Módulo','Largo (m)',d.ph],['Módulo','Potencia (Wp)',d.wp],['Montaje','Tipo',d.mount],['Montaje','Inclinación (°)',d.tilt],['Montaje','Orientación',d.orientation],['Montaje','Azimut (°)',d.faceAz],['Distribución','Paneles',d.panels],['Distribución','Potencia (kWp)',d.kwp],['Distribución','Filas',d.rows],['Distribución','Paneles por fila (máx.)',d.cols],['Distribución','Separación entre filas (m)',d.gap],['Distribución','Superficie módulos (m²)',d.area],['Energía','Producción anual estimada (kWh)',d.production],['Energía','Consumo anual (kWh)',d.consumption],['Energía','Autoconsumo estimado (%)',d.selfPct],['Energía','Autoconsumo estimado (kWh)',d.selfKwh],['Energía','Excedentes estimados (kWh)',d.surplus],['Economía','Precio factura medio ponderado (€/kWh)',d.billWeighted],['Economía','Precio usado en amortización (€/kWh)',d.tariff],['Economía','Consumo punta (%)',d.usePeak],['Economía','Consumo llano (%)',d.useMid],['Economía','Consumo valle (%)',d.useValley],['Economía','Compensación excedentes (€/kWh)',d.exportPrice],['Economía','Inversión (€)',d.investment],['Economía','Ahorro anual inicial (€)',d.saving],['Economía','Amortización estimada (años)',d.payback],['Economía','Media OMIE cargada (€/kWh)',d.omieMean],['Observaciones','Notas',d.notes]
+ ['Identificación','Proyecto',d.project],['Identificación','Titular',d.client],['Identificación','Instalador',d.installer],['Ubicación','Referencia',d.place],['Ubicación','Latitud (°)',d.lat],['Ubicación','Longitud (°)',d.lon],['Cubierta','Ancho (m)',d.rw],['Cubierta','Largo (m)',d.rl],['Cubierta','Margen lateral (m)',d.mx],['Cubierta','Margen frontal/trasero (m)',d.my],['Módulo','Ancho (m)',d.pw],['Módulo','Largo (m)',d.ph],['Módulo','Potencia (Wp)',d.wp],['Montaje','Tipo',d.mount],['Montaje','Inclinación (°)',d.tilt],['Montaje','Orientación',d.orientation],['Montaje','Azimut (°)',d.faceAz],['Distribución','Paneles',d.panels],['Distribución','Potencia (kWp)',d.kwp],['Distribución','Filas',d.rows],['Distribución','Paneles por fila (máx.)',d.cols],['Distribución','Separación entre filas (m)',d.gap],['Distribución','Superficie módulos (m²)',d.area],['Energía','Producción anual estimada (kWh)',d.production],['Energía','Consumo anual (kWh)',d.consumption],['Energía','Autoconsumo estimado (%)',d.selfPct],['Energía','Autoconsumo estimado (kWh)',d.selfKwh],['Energía','Excedentes estimados (kWh)',d.surplus],['Economía','Precio usado (€/kWh)',d.tariff],['Economía','Compensación excedentes (€/kWh)',d.exportPrice],['Economía','Inversión (€)',d.investment],['Economía','Ahorro anual inicial (€)',d.saving],['Economía','Amortización estimada (años)',d.payback],['Economía','Media OMIE cargada (€/kWh)',d.omieMean],['Observaciones','Notas',d.notes]
  ];}
 function buildReport(){const d=reportData(),rows=reportRows(d);const value=(x)=>x===null||x===undefined||x===''?'No disponible':typeof x==='number'?fmtReport(x):String(x);
  const tr=rows.map(r=>`<tr><td>${safeText(r[0])}</td><td>${safeText(r[1])}</td><td>${safeText(value(r[2]))}</td></tr>`).join('');
  const energyChart=$('energyPriceChart').toDataURL('image/png'),payChart=$('paybackChart').toDataURL('image/png'),solarChart=$('monthChart')?$('monthChart').toDataURL('image/png'):'';const layoutSvg=$('drawing').querySelector('svg.plan')?.outerHTML||'<p>La distribución aún no se ha generado.</p>';const shadeTable=lastSolar?`<h3>Separación solar mensual</h3><table><thead><tr><th>Mes</th><th>Separación sin sombra (m)</th><th>Separación aplicada (m)</th><th>Sombra estimada</th></tr></thead><tbody>${lastSolar.rows.map(r=>`<tr><td>${months[r.m]}</td><td>${fmtReport(r.maxNoShade.gap)}</td><td>${fmtReport(lastSolar.gap)}</td><td>${fmtReport(r.chosenShade*100,1)} %</td></tr>`).join('')}</tbody></table>`:'<p>No se ha ejecutado el cálculo solar de separación entre filas.</p>';
- $('reportPreview').innerHTML=`<div class="report-page"><h1>INFORME TÉCNICO Y ECONÓMICO</h1><h2>${safeText(d.project)}</h2><p><b>FaraEladio Roof Planner Design</b></p><p>Fecha: ${d.date}</p><p><b>Autor: ${d.author}</b></p><p>Titular: ${safeText(d.client)}<br>Instalador: ${safeText(d.installer)}<br>Ubicación: ${safeText(d.place||'No indicada')}</p><hr><h2>Resumen ejecutivo</h2><p>Potencia fotovoltaica: <b>${value(d.kwp)} kWp</b> · Módulos: <b>${value(d.panels)}</b> · Producción anual estimada: <b>${value(d.production)} kWh</b>.</p><p>Ahorro anual inicial estimado: <b>${value(d.saving)} €</b> · Amortización estimada: <b>${d.payback?fmtReport(d.payback)+' años':'Más de 25 años / no calculable'}</b>.</p><p class="mutedbox">Documento de estudio preliminar generado a partir de los datos introducidos en la aplicación. No constituye proyecto técnico visado, memoria reglamentaria, certificado de instalación ni garantía de producción.</p></div><div class="report-page"><h2>1. Datos técnicos del proyecto</h2><table><thead><tr><th>Bloque</th><th>Parámetro</th><th>Valor</th></tr></thead><tbody>${tr}</tbody></table><h2>2. Configuración y distribución</h2><p>Montaje: ${safeText(d.mount)} · Inclinación: ${value(d.tilt)}° · Orientación: ${safeText(d.orientation)} · Azimut: ${value(d.faceAz)}°.</p><p>Dimensiones de cubierta: ${value(d.rw)} × ${value(d.rl)} m. Distribución: ${value(d.panels)} módulos, ${value(d.rows)} filas, separación ${value(d.gap)} m.</p><h2>3. Plano de distribución de módulos</h2><div>${layoutSvg}</div>${shadeTable}${solarChart?`<h3>Comparación mensual de separación</h3><img src="${solarChart}" style="width:100%;max-width:850px">`:""}<h2>4. Producción y balance energético</h2><p>La producción anual se estima multiplicando la potencia instalada por el rendimiento específico introducido (${value(d.annualYield)} kWh/kWp·año). No se muestran producciones mensuales porque todavía no hay una serie mensual real importada de PVGIS; no se reparte artificialmente el total anual. El autoconsumo y excedentes son estimaciones basadas en el porcentaje indicado.</p></div><div class="report-page"><h2>5. Precios de energía</h2><p>Los precios OMIE utilizados corresponden a MarginalES (España), convertidos de €/MWh a €/kWh. Son mayoristas y no equivalen al precio final de suministro. La comparación de factura usa los precios introducidos por el usuario. Media OMIE importada: ${value(d.omieMean)} €/kWh.</p><img src="${energyChart}" style="width:100%;max-width:850px"><h2>6. Estudio económico</h2><p>Inversión: ${value(d.investment)} € · Ahorro anual inicial: ${value(d.saving)} € · Amortización estimada: ${d.payback?fmtReport(d.payback)+' años':'Más de 25 años / no calculable'}.</p><img src="${payChart}" style="width:100%;max-width:850px"><h2>7. Hipótesis, alcance y limitaciones</h2><ul><li>Producción anual y autoconsumo son estimaciones, no mediciones.</li><li>El retorno simple no incorpora financiación, mantenimiento, degradación, sustitución de equipos, impuestos ni ayudas.</li><li>El precio de factura en tres periodos es una media ponderada por el reparto de consumo introducido por el usuario; el ahorro real depende de la coincidencia horaria entre consumo y generación solar.</li><li>El precio OMIE es mayorista; para valorar el ahorro se debe usar la tarifa real de factura y la compensación contractual.</li><li>El diseño geométrico no sustituye comprobación estructural, eléctrica, urbanística ni estudio profesional.</li></ul><p>Observaciones: ${safeText(d.notes)}</p><hr><p><b>Autor: ${d.author}</b> · FaraEladio Roof Planner Design · ${d.date}</p></div>`;
+ $('reportPreview').innerHTML=`<div class="report-page"><h1>INFORME TÉCNICO Y ECONÓMICO</h1><h2>${safeText(d.project)}</h2><p><b>FaraEladio Roof Planner and economic design</b></p><p>Fecha: ${d.date}</p><p><b>Autor: ${d.author}</b></p><p>Titular: ${safeText(d.client)}<br>Instalador: ${safeText(d.installer)}<br>Ubicación: ${safeText(d.place||'No indicada')}</p><hr><h2>Resumen ejecutivo</h2><p>Potencia fotovoltaica: <b>${value(d.kwp)} kWp</b> · Módulos: <b>${value(d.panels)}</b> · Producción anual estimada: <b>${value(d.production)} kWh</b>.</p><p>Ahorro anual inicial estimado: <b>${value(d.saving)} €</b> · Amortización estimada: <b>${d.payback?fmtReport(d.payback)+' años':'Más de 25 años / no calculable'}</b>.</p><p class="mutedbox">Documento de estudio preliminar generado a partir de los datos introducidos en la aplicación. No constituye proyecto técnico visado, memoria reglamentaria, certificado de instalación ni garantía de producción.</p></div><div class="report-page"><h2>1. Datos técnicos del proyecto</h2><table><thead><tr><th>Bloque</th><th>Parámetro</th><th>Valor</th></tr></thead><tbody>${tr}</tbody></table><h2>2. Configuración y distribución</h2><p>Montaje: ${safeText(d.mount)} · Inclinación: ${value(d.tilt)}° · Orientación: ${safeText(d.orientation)} · Azimut: ${value(d.faceAz)}°.</p><p>Dimensiones de cubierta: ${value(d.rw)} × ${value(d.rl)} m. Distribución: ${value(d.panels)} módulos, ${value(d.rows)} filas, separación ${value(d.gap)} m.</p><h2>3. Plano de distribución de módulos</h2><div>${layoutSvg}</div>${shadeTable}${solarChart?`<h3>Comparación mensual de separación</h3><img src="${solarChart}" style="width:100%;max-width:850px">`:""}<h2>4. Producción y balance energético</h2><p>La producción se estima multiplicando la potencia instalada por el rendimiento específico introducido (${value(d.annualYield)} kWh/kWp·año). El autoconsumo y excedentes son estimaciones basadas en el porcentaje indicado.</p></div><div class="report-page"><h2>5. Precios de energía</h2><p>Los precios OMIE utilizados corresponden a MarginalES (España), convertidos de €/MWh a €/kWh. Son mayoristas y no equivalen al precio final de suministro. La comparación de factura usa los precios introducidos por el usuario. Media OMIE importada: ${value(d.omieMean)} €/kWh.</p><img src="${energyChart}" style="width:100%;max-width:850px"><h2>6. Estudio económico</h2><p>Inversión: ${value(d.investment)} € · Ahorro anual inicial: ${value(d.saving)} € · Amortización estimada: ${d.payback?fmtReport(d.payback)+' años':'Más de 25 años / no calculable'}.</p><img src="${payChart}" style="width:100%;max-width:850px"><h2>7. Hipótesis, alcance y limitaciones</h2><ul><li>Producción anual y autoconsumo son estimaciones, no mediciones.</li><li>El retorno simple no incorpora financiación, mantenimiento, degradación, sustitución de equipos, impuestos ni ayudas.</li><li>El precio OMIE es mayorista; para valorar el ahorro se debe usar la tarifa real de factura y la compensación contractual.</li><li>El diseño geométrico no sustituye comprobación estructural, eléctrica, urbanística ni estudio profesional.</li></ul><p>Observaciones: ${safeText(d.notes)}</p><hr><p><b>Autor: ${d.author}</b> · FaraEladio Roof Planner and economic design · ${d.date}</p></div>`;
  $('reportStatus').textContent='Vista previa actualizada. Revisa los valores «No disponible» y completa los cálculos pendientes antes de exportar.';return d;}
 $('buildReport').onclick=buildReport;
 $('printReport').onclick=()=>{buildReport();showTab('report');setTimeout(()=>window.print(),150);};
@@ -658,18 +681,18 @@ function downloadXlsx(){const d=buildReport(),sheets=[];
  [['Cubierta y distribución'],['Parámetro','Valor'],['Ancho cubierta (m)',d.rw],['Largo cubierta (m)',d.rl],['Margen lateral (m)',d.mx],['Margen frontal/trasero (m)',d.my],['Orientación módulo',d.orientation],['Montaje',d.mount],['Inclinación (°)',d.tilt],['Azimut (°)',d.faceAz],['Paneles',d.panels],['Filas',d.rows],['Máx. paneles/fila',d.cols],['Separación filas (m)',d.gap],['Superficie módulos (m²)',d.area]],
  [['Sombras'],['Mes','Separación sin sombra (m)','Separación aplicada (m)','Sombra estimada (%)'],...(lastSolar?lastSolar.rows.map(r=>[months[r.m],r.maxNoShade.gap,lastSolar.gap,r.chosenShade*100]):[['Sin cálculo','','','']])],
  [['Equipos'],['Equipo','Dato'],['Potencia módulo (Wp)',d.wp],['Dimensión módulo ancho (m)',d.pw],['Dimensión módulo largo (m)',d.ph],['Número de módulos',d.panels],['Potencia total (kWp)',d.kwp]],
- [['Producción mensual'],['Mes','Producción estimada (kWh)','Fuente / estado'],...months.map(m=>[m,'','Sin serie mensual PVGIS importada; dato no disponible'])],
+ [['Producción mensual'],['Mes','Producción estimada (kWh)','Fuente'],...months.map(m=>[m,d.production===null?'':d.production/12,'Estimación anual / 12; no es simulación PVGIS mensual'])],
  [['Consumo y autoconsumo'],['Concepto','Valor','Unidad'],['Consumo anual',d.consumption,'kWh'],['Autoconsumo directo',d.selfPct,'%'],['Energía autoconsumida',d.selfKwh,'kWh'],['Excedentes estimados',d.surplus,'kWh'],['Producción anual',d.production,'kWh']],
  [['Precios OMIE · España'],['Fecha','Periodo','MarginalES (€/MWh)','MarginalES (€/kWh)'],...d.omie.map(p=>[`${String(p.year).padStart(4,'0')}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`,p.period,p.eurMwh,p.eurKwh])],
- [['Tarifa factura'],['Parámetro','Valor','Unidad'],['Modalidad',d.billMode,''],['Consumo punta',d.usePeak,'%'],['Consumo llano',d.useMid,'%'],['Consumo valle',d.useValley,'%'],['Precio medio ponderado de factura',d.billWeighted,'€/kWh'],['Precio seleccionado para amortización',d.tariff,'€/kWh'],['Compensación excedentes',d.exportPrice,'€/kWh'],['Media OMIE importada',d.omieMean??'','€/kWh']],
- [['Amortización'],['Año','Ahorro anual estimado (€)','Flujo acumulado (€)'],...Array.from({length:25},(_,i)=>[i+1,d.saving===null?'':d.saving*Math.pow(1+d.rise/100,i),i===0?`=B${i+3}-'Portada'!B12`:`=C${i+2}+B${i+3}`])],
+ [['Tarifa factura'],['Parámetro','Valor','Unidad'],['Modalidad',d.billMode,''],['Precio aplicado a amortización',d.tariff,'€/kWh'],['Compensación excedentes',d.exportPrice,'€/kWh'],['Media OMIE importada',d.omieMean??'','€/kWh']],
+ [['Amortización'],['Año','Ahorro anual estimado (€)','Flujo acumulado (€)'],...Array.from({length:25},(_,i)=>[i+1,d.saving===null?'':d.saving*Math.pow(1+d.rise/100,i),i===0?`=B${i+2}-'Portada'!B12`:`=C${i+1}+B${i+2}`])],
  [['Hipótesis y fuentes'],['Concepto','Valor'],['Rendimiento específico (kWh/kWp·año)',d.annualYield],['Incremento anual precio (%)',d.rise],['Porcentaje autoconsumo (%)',d.selfPct],['Fuente precios OMIE','OMIE · MARGINALPDBC importado/consultado si disponible'],['Fecha del informe',d.date],['Observaciones',d.notes],['Limitaciones','Estimación; no incorpora financiación, O&M, degradación, sustituciones ni impuestos.'],['Nota regulatoria','No sustituye proyecto técnico, memoria reglamentaria ni certificado.']]
  ];
  const names=['Portada','Cubierta','Sombras','Equipos','Producción','Consumo','OMIE','Tarifa','Amortización','Hipótesis'];
  // Las fórmulas de flujo acumulado descuentan la inversión inicial de la hoja Portada.
  const files={'[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+names.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>','_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>','xl/workbook.xml':'<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+names.map((n,i)=>`<sheet name="${n}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>','xl/_rels/workbook.xml.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+names.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+'</Relationships>'};
  files['xl/worksheets/sheet1.xml']=sheetXml(sheets);data.forEach((r,i)=>files[`xl/worksheets/sheet${i+2}.xml`]=sheetXml(r));
- const blob=zipStored(files),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FaraEladio_Informe_Tecnico_Economico.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$('reportStatus').textContent='Libro Excel .xlsx generado con 10 hojas. La hoja Producción mensual queda sin valores porque no se ha importado una serie mensual real de PVGIS; no se inventa un reparto anual/12.';
+ const blob=zipStored(files),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FaraEladio_Informe_Tecnico_Economico.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);$('reportStatus').textContent='Libro Excel .xlsx generado con 10 hojas. Los datos mensuales de producción se distribuyen como estimación uniforme anual/12 porque no se ha importado una serie mensual PVGIS.';
 }
 $('downloadReportXlsx').onclick=downloadXlsx;
 
